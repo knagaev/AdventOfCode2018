@@ -9,36 +9,60 @@ namespace CsConsoleApplication
     {
         public class GuardRecord
         {
-            public int Month;
-            public int Day;
-            public int Hour;
-            public int Minute;
+            public DateTime timestamp;
             public int GuardId;
             public bool WakeUp;
         };
 
-        public static void Run1()
+        public static void Run2(bool isTest = true)
         {
-            var guardRecords = ReadTestInput();
+            var sleepRecords = PrepareInput(isTest);
 
-            guardRecords.OrderBy(gr => gr.Month).ThenBy(gr => gr.Day).ThenBy(gr => gr.Hour).ThenBy(gr => gr.Minute);
+            var mostSleepMinuteForGuard = sleepRecords.GroupBy(sr => new { sr.GuardId, sr.timestamp.Minute })
+                                            .Select(gsr => new { gsr.Key.GuardId, gsr.Key.Minute, MinuteCount = gsr.Count() })
+                                            .Aggregate((msg, next) => next.MinuteCount > msg.MinuteCount ? next : msg);
+
+            Console.WriteLine(String.Format("Guard#{0} minute:{1} count:{2} result:{3}",
+                                            mostSleepMinuteForGuard.GuardId, mostSleepMinuteForGuard.Minute, mostSleepMinuteForGuard.MinuteCount, mostSleepMinuteForGuard.GuardId * mostSleepMinuteForGuard.Minute));
+            Console.ReadLine();
+        }
+
+        public static void Run1(bool isTest = true)
+        {
+            var sleepRecords = PrepareInput(isTest);
+
+            var mostSleepGuard = sleepRecords.GroupBy(sr => sr.GuardId)
+                                            .Select(gsr => new { GuardId = gsr.Key, MinuteCount = gsr.Count() })
+                                            .Aggregate((msg, next) => next.MinuteCount > msg.MinuteCount ? next : msg);
+
+            Console.WriteLine(String.Format("Guard#{0} count:{1}", mostSleepGuard.GuardId, mostSleepGuard.MinuteCount));
+
+            var mostSleepMinute = sleepRecords.Where(ss => ss.GuardId == mostSleepGuard.GuardId)
+                                            .GroupBy(sr => new { sr.timestamp.Minute })
+                                            .Select(gsr => new { gsr.Key.Minute, MinuteCount = gsr.Count() })
+                                            .Aggregate((msm, next) => next.MinuteCount > msm.MinuteCount ? next : msm);
+
+            Console.WriteLine(String.Format("Guard#{0} minute:{1} count:{2} result:{3}",
+                                            mostSleepGuard.GuardId, mostSleepMinute.Minute, mostSleepMinute.MinuteCount, mostSleepGuard.GuardId * mostSleepMinute.Minute));
+            Console.ReadLine();
+        }
+
+        public static List<GuardRecord> PrepareInput(bool isTest)
+        {
+            var guardRecords = isTest ? ReadTestInput(): ReadInput();
+
+            guardRecords = guardRecords.OrderBy(gr => gr.timestamp).ToList();
 
             var sleepRecords = new List<GuardRecord>();
 
             int guardId = 0;
-            int monthBeginSleep = -1;
-            int dayBeginSleep = -1;
-            int hourBeginSleep = -1;
-            int minuteBeginSleep = -1;
+            DateTime timestampBeginSleep = DateTime.MinValue;
 
             foreach (var guardRecord in guardRecords)
             {
                 if (!guardRecord.WakeUp)
                 {
-                    monthBeginSleep = guardRecord.Month;
-                    dayBeginSleep = guardRecord.Day;
-                    hourBeginSleep = guardRecord.Hour;
-                    minuteBeginSleep = guardRecord.Minute;
+                    timestampBeginSleep = guardRecord.timestamp;
                 }
                 else
                 {
@@ -48,29 +72,16 @@ namespace CsConsoleApplication
                     }
                     else
                     {
-                        int month = monthBeginSleep;
-                        int day = dayBeginSleep;
-                        int hour = hourBeginSleep;
-                        int minute = minuteBeginSleep;
-                        while (hour < guardRecord.Hour || minute < guardRecord.Minute)
+                        for (DateTime ts = timestampBeginSleep; ts < guardRecord.timestamp; ts = ts.AddMinutes(1))
                         {
-                            sleepRecords.Add(new GuardRecord { Month = guardRecord.Month, Day = guardRecord.Day, Hour = hour, Minute = minute, GuardId = guardId });
-
-                            minute++;
-                            if (minute > 59)
-                            {
-                                minute = 0;
-                                hour++;
-                            }
+                            sleepRecords.Add(new GuardRecord { timestamp = ts, GuardId = guardId });
                         }
                     }
                 }
-
             }
-
-            Console.WriteLine(guardRecords.Count);
-            Console.ReadLine();
+            return sleepRecords;
         }
+
 
         public static List<GuardRecord> ReadInput()
         {
@@ -130,17 +141,19 @@ namespace CsConsoleApplication
             //[1518-11-01 00:00] Guard #10 begins shift
             //[1518-11-01 00:05] falls asleep
             //[1518-11-01 00:25] wakes up
-            var reGuardRecord = new System.Text.RegularExpressions.Regex(@"\[\d+-(\d+)-(\d+) (\d+):(\d+)\] (.+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            var reGuardRecord = new System.Text.RegularExpressions.Regex(@"\[(\d+)-(\d+)-(\d+) (\d+):(\d+)\] (.+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
             var reGuardNum = new System.Text.RegularExpressions.Regex(@"Guard #(\d+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
             var match = reGuardRecord.Match(line);
             if (match.Success)
             {
-                guardRecord.Month = int.Parse(match.Groups[1].Value);
-                guardRecord.Day = int.Parse(match.Groups[2].Value);
-                guardRecord.Hour = int.Parse(match.Groups[3].Value);
-                guardRecord.Minute = int.Parse(match.Groups[4].Value);
+                guardRecord.timestamp = new DateTime(int.Parse(match.Groups[1].Value),
+                                                     int.Parse(match.Groups[2].Value),
+                                                     int.Parse(match.Groups[3].Value),
+                                                     int.Parse(match.Groups[4].Value),
+                                                     int.Parse(match.Groups[5].Value),
+                                                     0);
 
-                string recordType = match.Groups[5].Value;
+                string recordType = match.Groups[6].Value;
 
                 switch (recordType.First())
                 {
