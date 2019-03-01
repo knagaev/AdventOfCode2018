@@ -12,7 +12,24 @@ namespace CsConsoleApplication
         {
             var polymer = PrepareInput(isTest);
 
-            Console.WriteLine(String.Format("Polymer length {0}", polymer.Length));
+            var polymerList = polymer.ToList();
+
+            int polymerLength = polymerList.Count;
+
+            while (true)
+            {
+                polymerList = polymerList
+                        .Zip(polymerList.Skip(1), (f, s) => ((char.IsUpper(f) ? char.ToLower(f) : char.ToUpper(f)) == s) ? '\0' : f)
+                        .Where(c => c != '\0')
+                        .ToList();
+
+                if (polymerList.Count == polymerLength)
+                    break;
+
+                polymerLength = polymerList.Count;
+            } 
+
+            Console.WriteLine(String.Format("Polymer {0} length {1}", String.Join("", polymerList), polymerLength));
             Console.ReadLine();
         }
 
