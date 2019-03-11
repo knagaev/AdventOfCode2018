@@ -69,32 +69,53 @@ namespace CsConsoleApplication
         }
         public static void Run2(bool isTest = true)
         {
-            var unitTypes = new List<char> {'a', 'b', 'c', 'd'};
-
             var polymer = PrepareInput(isTest);
 
+            var unitTypes = polymer.Select(i => char.ToLower(i)).Distinct();
 
             var result = unitTypes.Select(ut => ReactPolymer(polymer.ToList(), ut).Count).Min();
-            Console.WriteLine(String.Format("length {0}", result));
+
+            Console.WriteLine(String.Format("Min length {0}", result));
             Console.ReadLine();
 
 
         }
         public static List<char> ReactPolymer(List<char> polymer, char unitType = '0')
         {
+            char curChar, nextChar;
             int curIndex = 0;
 
             while (true)
             {
-                if (curIndex >= polymer.Count) break;
+                while (true)
+                {
+                    if (curIndex >= polymer.Count) 
+                        return polymer;
+
+                    curChar = polymer[curIndex];
+
+                    if (char.ToLower(curChar) == unitType)
+                        polymer.RemoveAt(curIndex);
+                    else
+                        break;
+                }
 
                 var nextIndex = curIndex + 1;
-                if (nextIndex >= polymer.Count) break;
 
-                var curChar = polymer[curIndex];
-                var nextChar = polymer[nextIndex];
+                while (true)
+                {
+                    if (nextIndex >= polymer.Count) 
+                        return polymer;
 
-                if ((char.IsUpper(curChar) ? char.ToLower(curChar) : char.ToUpper(curChar)) == nextChar && (unitType == '0' || (unitType == curChar || unitType == nextChar)))
+                    nextChar = polymer[nextIndex];
+
+                    if (char.ToLower(nextChar) == unitType)
+                        polymer.RemoveAt(nextIndex);
+                    else
+                        break;
+                }
+                
+                if ((char.IsUpper(curChar) ? char.ToLower(curChar) : char.ToUpper(curChar)) == nextChar)
                 {
                     polymer.RemoveRange(curIndex, 2);
                     if (curIndex > 0) curIndex--;
