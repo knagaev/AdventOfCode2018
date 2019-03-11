@@ -123,8 +123,6 @@ namespace CsConsoleApplication
                 else
                     curIndex++;
             }
-
-            return polymer;
         }
 
         public static string PrepareInput(bool isTest)
