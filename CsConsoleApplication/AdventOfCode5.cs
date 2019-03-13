@@ -16,52 +16,6 @@ namespace CsConsoleApplication
 
             int polymerLength = polymerList.Count;
 
-            //while (true)
-            //{
-            //    //polymerList = polymerList
-            //    //        .Zip(polymerList.Skip(1), (f, s) => ((char.IsUpper(f) ? char.ToLower(f) : char.ToUpper(f)) == s) ? '\0' : f)
-            //    //        .Where(c => c != '\0')
-            //    //        .ToList();
-
-            //    polymerList = new List<char> {'0'}.Concat(polymerList)
-            //            .Zip(polymerList, (l, m) => new {l, m})
-            //            .Zip(polymerList.Skip(1).Concat(new List<char> {'0'}), (lm, r) => new {lm.l, lm.m, r})
-            //            .Where(lmr => ((char.IsUpper(lmr.l) ? char.ToLower(lmr.l) : char.ToUpper(lmr.l)) != lmr.m) && ((char.IsUpper(lmr.m) ? char.ToLower(lmr.m) : char.ToUpper(lmr.m)) != lmr.r))
-            //            .Select(lmr => lmr.m)
-            //            .ToList();
-
-            //    if (polymerList.Count == polymerLength)
-            //        break;
-
-            //    polymerLength = polymerList.Count;
-            //} 
-            /*
-            int curIndex = 0;
-
-            while (true)
-            {
-                if (curIndex >= polymerList.Count) break;
-
-                var nextIndex = curIndex + 1;
-                if (nextIndex >= polymerList.Count) break;
-
-                var curChar = polymerList[curIndex];
-                var nextChar = polymerList[nextIndex];
-
-                if ((char.IsUpper(curChar) ? char.ToLower(curChar) : char.ToUpper(curChar)) == nextChar)
-                {
-                    polymerList.RemoveRange(curIndex, 2);
-                    if (curIndex > 0) curIndex--;
-                }
-                else
-                    curIndex++;
-            }
-            polymerList = polymerList.Aggregate(new List<char>(), (total, next) =>
-                total.Count > 0 && total.Last() == (char.IsUpper(next) ? char.ToLower(next) : char.ToUpper(next)) ?
-                    total.Take(total.Count - 1).ToList() :
-                    total.Concat(new List<char> { next }).ToList()
-            );
-            */
             polymerList = ReactPolymer(polymerList);
 
             Console.WriteLine(String.Format("Polymer {0} length {1}", String.Join("", polymerList), polymerList.Count));

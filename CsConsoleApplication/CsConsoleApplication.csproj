@@ -50,6 +50,7 @@
     <Compile Include="AdventOfCode4.cs" />
     <Compile Include="AdventOfCode5.cs" />
     <Compile Include="AdventOfCode6.cs" />
+    <Compile Include="AdventOfCode7.cs" />
     <Compile Include="HashBuckets.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -60,6 +61,8 @@
     <Content Include="Input\AdventOfCode3.txt" />
     <Content Include="Input\AdventOfCode4.txt" />
     <Content Include="Input\AdventOfCode5.txt" />
+    <Content Include="Input\AdventOfCode6.txt" />
+    <Content Include="Input\AdventOfCode7.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
