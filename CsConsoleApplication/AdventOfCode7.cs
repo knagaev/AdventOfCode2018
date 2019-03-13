@@ -58,39 +58,53 @@ namespace CsConsoleApplication
             var instruction = new List<char> { '\0' };
 
             int numWorkers = isTest ? 2 : 5;
-            var workers = new (char step, int ready)[numWorkers];
+            var workers = Enumerable.Repeat(('\0', -1), numWorkers).Cast<(char step, int ready)>().ToArray();
 
             int clock = 0;
             while (true)
             {
                 for (int i = 0; i < numWorkers; i++)
                 {
-                    var worker = workers[i];
-                    if (worker.ready == clock)
+                    if (workers[i].ready == clock)
                     {
-                        instruction.Add(worker.step);
-                        worker = ('\0', 0);
+                        instruction.Add(workers[i].step);
+                        workers[i] = ('\0', -1);
                     }
                 }
 
-                var nextStep = conditions
+                var nextSteps = conditions
                     .Where(c => !c.dependsOn.Except(instruction.ToHashSet()).Any())
                     .SelectMany(c => c.possible)
                     .Except(instruction.ToHashSet())
-                    .OrderBy(c => c)
-                    .FirstOrDefault();
+                    .OrderBy(c => c);
 
-                if (!workers.Select(w => w.step).Contains(nextStep))
+                if (nextSteps.Count() == 0) break;
+
+                foreach (var nextStep in nextSteps)
                 {
-
+                    if (!workers.Select(w => w.step).Contains(nextStep))
+                    {
+                        for (int i = 0; i < numWorkers; i++)
+                        {
+                            if (workers[i].ready == -1)
+                            {
+                                workers[i] = (nextStep, clock + (int)nextStep - (isTest ? 64 : 4));
+                                break;
+                            }
+                        }
+                    }
                 }
 
-                if (nextStep == 0) break;
-
                 clock++;
+
+                if(isTest)
+                    Console.WriteLine(String.Format("{0} {1} {2}", clock, workers[0].step, workers[1].step));
+                else
+                    Console.WriteLine(String.Format("{0} {1} {2} {3} {4} {5}", clock, workers[0].step, workers[1].step, workers[2].step, workers[3].step, workers[4].step));
             }
 
-            Console.WriteLine(String.Format("Instruction {0}", String.Join("", instruction)));
+            // ACHOQRXSEKUGMYIWDZLNBFTJVP
+            Console.WriteLine(String.Format("Instruction {0} clock {1}", String.Join("", instruction), clock));
             Console.ReadLine();
         }
         public static List<(char before, char after)> PrepareInput(bool isTest)

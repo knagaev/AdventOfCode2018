@@ -10,8 +10,7 @@ namespace CsConsoleApplication
     {
         static void Main(string[] args)
         {
-            //AdventOfCode31.GetCrosses(new AdventOfCode31.Claim { Left = 1, Top = 3, Height = 4, Width = 4 }, new AdventOfCode31.Claim { Left = 5, Top = 5, Height = 2, Width = 2 });
-            AdventOfCode7.Run1(false);
+            AdventOfCode7.Run2(false);
         }
 
     }
