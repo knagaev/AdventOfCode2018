@@ -52,6 +52,7 @@
     <Compile Include="AdventOfCode6.cs" />
     <Compile Include="AdventOfCode7.cs" />
     <Compile Include="AdventOfCode8.cs" />
+    <Compile Include="AdventOfCode9.cs" />
     <Compile Include="HashBuckets.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
