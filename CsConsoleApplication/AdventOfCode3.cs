@@ -64,7 +64,7 @@ namespace CsConsoleApplication
             var claims = new List<Claim>();
 
             const Int32 BufferSize = 128;
-            using (var fileStream = System.IO.File.OpenRead(@"..\..\AdventOfCode\AdventOfCode3.txt"))
+            using (var fileStream = System.IO.File.OpenRead(@"..\..\Input\AdventOfCode3.txt"))
             using (var streamReader = new System.IO.StreamReader(fileStream, Encoding.UTF8, true, BufferSize))
             {
                 String line;

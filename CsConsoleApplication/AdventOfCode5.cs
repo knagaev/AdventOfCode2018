@@ -89,7 +89,7 @@ namespace CsConsoleApplication
             var inputString = new StringBuilder();
 
             const Int32 BufferSize = 128;
-            using (var fileStream = System.IO.File.OpenRead(@"..\..\AdventOfCode\AdventOfCode5.txt"))
+            using (var fileStream = System.IO.File.OpenRead(@"..\..\Input\AdventOfCode5.txt"))
             using (var streamReader = new System.IO.StreamReader(fileStream, Encoding.UTF8, true, BufferSize))
             {
                 String line;

@@ -88,7 +88,7 @@ namespace CsConsoleApplication
             var guardRecords = new List<GuardRecord>();
 
             const Int32 BufferSize = 128;
-            using (var fileStream = System.IO.File.OpenRead(@"..\..\AdventOfCode\AdventOfCode4.txt"))
+            using (var fileStream = System.IO.File.OpenRead(@"..\..\Input\AdventOfCode4.txt"))
             using (var streamReader = new System.IO.StreamReader(fileStream, Encoding.UTF8, true, BufferSize))
             {
                 String line;

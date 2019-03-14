@@ -13,7 +13,7 @@ namespace CsConsoleApplication
 
             int frequency = 0;
 
-            using (var fileStream = System.IO.File.OpenRead(@"..\..AdventOfCode\AdventOfCode1.txt"))
+            using (var fileStream = System.IO.File.OpenRead(@"..\..\Input\AdventOfCode1.txt"))
             using (var streamReader = new System.IO.StreamReader(fileStream, Encoding.UTF8, true, BufferSize))
             {
                 String line;
