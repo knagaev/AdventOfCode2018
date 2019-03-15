@@ -19,13 +19,22 @@ namespace CsConsoleApplication
             }
             Console.ReadLine();
         }
-
-        private static int CalculateHighScore(int playersQty, int points)
+        public static void Run2(bool isTest = true)
         {
-            int highScore = 0;
+            var parsedResults = PrepareInput(isTest);
 
+            foreach (var parsedResult in parsedResults)
+            {
+                var calculatedHighScore = CalculateHighScore(parsedResult.PlayersQty, parsedResult.Points * 100);
+                Console.WriteLine(String.Format("High score is {0} {1}", parsedResult.HighScore, calculatedHighScore));
+            }
+            Console.ReadLine();
+        }
+
+        private static long CalculateHighScore(int playersQty, int points)
+        {
             var game = new DoubleLinkedList();
-            var elves = new int[playersQty];
+            var elves = new long[playersQty];
 
             for (int i = 0; i < points; i++)
             {
@@ -35,6 +44,7 @@ namespace CsConsoleApplication
                     var seventhCcMarble = game.GetPrevious(7);
                     elves[marble % playersQty] += marble + seventhCcMarble;
                     game.Remove(seventhCcMarble);
+                    Console.WriteLine(elves.Max());
                 }
                 else
                     game.Insert(i + 1);
@@ -108,13 +118,6 @@ namespace CsConsoleApplication
 
         public void Insert(int element)
         {
-            /*var curLinks = _list[after];
-            var curNextLinks = _list[curLinks.next];
-
-            _list[after] = (curLinks.previous, element);
-            _list[element] = (after, curLinks.next);
-            _list[curLinks.next] = (element, curNextLinks.next);*/
-
             var after = _list[_current].Next;
 
             var next = _list[after].Next;
@@ -136,18 +139,12 @@ namespace CsConsoleApplication
 
         public void PrintGameState()
         {
-            /*var state = _list.OrderBy(m => m.Value.Next == 0 ? int.MaxValue : m.Value.Next)
-                .Select(m => (m.Key == _current ? "(" + m.Key + ")" : m.Key.ToString()) + "," + m.Value.Next)
-                .ToList();*/
-
-            //var state = new List<int> { 0 };
             int pointer = 0;
             while (true)
             {
                 Console.Write(" " + (pointer != _current ? pointer.ToString() : "(" + pointer + ")"));
                 pointer = _list[pointer].Next;
                 if (pointer == 0) break;
-                //state.Add(pointer);
             }
 
             Console.WriteLine();
