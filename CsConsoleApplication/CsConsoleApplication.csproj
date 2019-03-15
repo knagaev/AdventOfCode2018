@@ -45,6 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdventOfCode1.cs" />
+    <Compile Include="AdventOfCode10.cs" />
     <Compile Include="AdventOfCode2.cs" />
     <Compile Include="AdventOfCode3.cs" />
     <Compile Include="AdventOfCode4.cs" />
@@ -59,6 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Input\AdventOfCode1.txt" />
+    <Content Include="Input\AdventOfCode10.txt" />
     <Content Include="Input\AdventOfCode2.txt" />
     <Content Include="Input\AdventOfCode3.txt" />
     <Content Include="Input\AdventOfCode4.txt" />
