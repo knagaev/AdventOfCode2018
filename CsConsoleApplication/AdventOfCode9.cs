@@ -12,17 +12,49 @@ namespace CsConsoleApplication
         {
             var parsedResults = PrepareInput(isTest);
 
-            Console.WriteLine(String.Format("Sum of all metadata entries {0}", 1));
+            foreach (var parsedResult in parsedResults)
+            {
+                var calculatedHighScore = CalculateHighScore(parsedResult.PlayersQty, parsedResult.Points);
+                Console.WriteLine(String.Format("High score is {0} {1}", parsedResult.HighScore, calculatedHighScore));
+            }
             Console.ReadLine();
         }
 
-        public static List<(int players, int points, int highScore)> PrepareInput(bool isTest)
+        private static int CalculateHighScore(int playersQty, int points)
+        {
+            int highScore = 0;
+
+            var game = new DoubleLinkedList();
+            var elves = new int[playersQty];
+
+            for (int i = 0; i < points; i++)
+            {
+                int marble = i + 1;
+                if (marble % 23 == 0)
+                {
+                    var seventhCcMarble = game.GetPrevious(7);
+                    elves[marble % playersQty] += marble + seventhCcMarble;
+                    game.Remove(seventhCcMarble);
+                }
+                else
+                    game.Insert(i + 1);
+
+                if (false)
+                {
+                    game.PrintGameState();
+                }
+            }
+
+            return elves.Max();
+        }
+
+        public static List<(int PlayersQty, int Points, int HighScore)> PrepareInput(bool isTest)
         {
             var results = isTest ? ReadTestInput() : ReadInput();
 
             var r = new System.Text.RegularExpressions.Regex(@"(\d+) players; last marble is worth (\d+) points(: high score is (\d+))*", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
-            var parsedResults = new List<(int players, int points, int highScore)>();
+            var parsedResults = new List<(int playersQty, int points, int highScore)>();
 
             foreach (var result in results)
             {
@@ -41,6 +73,7 @@ namespace CsConsoleApplication
         {
             var input = new List<string>
             {
+                "7 players; last marble is worth 25 points: high score is 32",
                 "10 players; last marble is worth 1618 points: high score is 8317",
                 "13 players; last marble is worth 7999 points: high score is 146373",
                 "17 players; last marble is worth 1104 points: high score is 2764",
@@ -61,4 +94,102 @@ namespace CsConsoleApplication
 
         }
     }
+
+    class DoubleLinkedList
+    {
+        private int _current;
+        private Dictionary<int, (int Previous, int Next)> _list;
+
+        public DoubleLinkedList()
+        {
+            _list = new Dictionary<int, (int Previous, int Next)> { { 0, (0, 0) } };
+            _current = 0;
+        }
+
+        public void Insert(int element)
+        {
+            /*var curLinks = _list[after];
+            var curNextLinks = _list[curLinks.next];
+
+            _list[after] = (curLinks.previous, element);
+            _list[element] = (after, curLinks.next);
+            _list[curLinks.next] = (element, curNextLinks.next);*/
+
+            var after = _list[_current].Next;
+
+            var next = _list[after].Next;
+
+            if (next == after)
+            {
+                _list[after] = (element, element);
+                _list[element] = (after, after);
+            }
+            else
+            {
+                _list[element] = (after, _list[after].Next);
+                _list[after] = (_list[after].Previous, element);
+                _list[next] = (element, _list[next].Next);
+            }
+
+            _current = element;
+        }
+
+        public void PrintGameState()
+        {
+            /*var state = _list.OrderBy(m => m.Value.Next == 0 ? int.MaxValue : m.Value.Next)
+                .Select(m => (m.Key == _current ? "(" + m.Key + ")" : m.Key.ToString()) + "," + m.Value.Next)
+                .ToList();*/
+
+            //var state = new List<int> { 0 };
+            int pointer = 0;
+            while (true)
+            {
+                Console.Write(" " + (pointer != _current ? pointer.ToString() : "(" + pointer + ")"));
+                pointer = _list[pointer].Next;
+                if (pointer == 0) break;
+                //state.Add(pointer);
+            }
+
+            Console.WriteLine();
+        }
+
+        public void Remove(int element)
+        {
+            var previous = _list[element].Previous;
+            var next = _list[element].Next;
+
+            if (previous == next)
+            {
+                _list[previous] = (previous, next);
+            }
+            else
+            {
+                _list[previous] = (_list[previous].Previous, next);
+                _list[next] = (previous, _list[next].Next);
+            }
+
+            _current = next;
+            _list.Remove(element);
+        }
+
+        public int GetNext(int offset = 1)
+        {
+            int pointer = _current;
+            for (int i = 0; i < offset; i++)
+                pointer = _list[pointer].Next;
+
+            return pointer;
+        }
+
+        public int GetPrevious(int offset = 1)
+        {
+            int pointer = _current;
+            for (int i = 0; i < offset; i++)
+                pointer = _list[pointer].Previous;
+
+            return pointer;
+        }
+    }
+
+
 }

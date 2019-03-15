@@ -66,6 +66,7 @@
     <Content Include="Input\AdventOfCode6.txt" />
     <Content Include="Input\AdventOfCode7.txt" />
     <Content Include="Input\AdventOfCode8.txt" />
+    <Content Include="Input\AdventOfCode9.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
