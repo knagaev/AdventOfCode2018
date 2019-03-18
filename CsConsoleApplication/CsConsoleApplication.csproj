@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="AdventOfCode1.cs" />
     <Compile Include="AdventOfCode10.cs" />
+    <Compile Include="AdventOfCode11.cs" />
     <Compile Include="AdventOfCode2.cs" />
     <Compile Include="AdventOfCode3.cs" />
     <Compile Include="AdventOfCode4.cs" />
