@@ -10,7 +10,7 @@ namespace CsConsoleApplication
     {
         static void Main(string[] args)
         {
-            AdventOfCode11.Run2(false);
+            AdventOfCode12.Run2(false);
         }
 
     }
