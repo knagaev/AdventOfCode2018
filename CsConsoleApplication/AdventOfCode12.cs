@@ -24,58 +24,66 @@ namespace CsConsoleApplication
             var input = PrepareInput(isTest);
 
             var curGen = input.InitialState;
+            var lastGen = curGen;
+            var lastPlantSum = 0;
             int offset = 0;
+            int times = 300;
 
             for (long g = 0; g < generationsQuantity; g++)
             {
-                var nextGen = curGen;
+                //var nextGen = curGen;
 
-                int firstPlantPosition = nextGen.IndexOf('#');
+                int firstPlantPosition = curGen.IndexOf('#');
 
                 int curOffset = firstPlantPosition - (NoteLength - 1);
 
                 if (curOffset < 0)
-                    nextGen = new string('.', -curOffset) + nextGen;
+                    curGen = new string('.', -curOffset) + curGen;
 
                 if (curOffset > 0)
-                    nextGen = curGen.Substring(curOffset);
+                    curGen = curGen.Substring(curOffset);
 
                 offset += curOffset;
 
-                int lastPlantPosition = nextGen.LastIndexOf('#');
+                int lastPlantPosition = curGen.LastIndexOf('#');
 
-                int extraTail = (nextGen.Length - NoteLength) - lastPlantPosition;
+                int extraTail = (curGen.Length - NoteLength) - lastPlantPosition;
 
                 if (extraTail < 0)
-                    nextGen += new string('.', -extraTail);
+                    curGen += new string('.', -extraTail);
 
                 if (extraTail > 0)
-                    nextGen = nextGen.Substring(0, nextGen.Length - extraTail);
+                    curGen = curGen.Substring(0, curGen.Length - extraTail);
 
+                Console.Write(curGen + " " + curOffset + " " + offset + " " + (g + 1));
 
-                var test = nextGen
-                            .Select((c, i) => new { c, i })
-                            .Skip(NoteLength - 1)
-                            .Select(ci => curGen.Substring(ci.i - (NoteLength - 1), NoteLength))
-                            .ToList();
-
-                curGen = ".." + string.Join("", nextGen
+                curGen = ".." + string.Join("", curGen
                                             .Select((c, i) => new { c, i })
                                             .Skip(NoteLength - 1)
                                             .Select(ci => input.Notes.ContainsKey(curGen.Substring(ci.i - (NoteLength - 1), NoteLength))
                                             ? input.Notes[curGen.Substring(ci.i - (NoteLength - 1), NoteLength)]
                                             : '.')) + "..";
 
-                Console.WriteLine(curGen + " " + curOffset + " " + offset);
-                if (curGen == nextGen) break;
+                var plantSum = curGen.Select((c, i) => new { c, i }).Where(ci => ci.c == '#').Sum(ci => ci.i + offset);
+                Console.WriteLine(" " + plantSum);
 
-                curGen = nextGen;
+                var diffSum = plantSum - lastPlantSum;
+                lastPlantSum = plantSum;
+
+                if (curGen == lastGen)
+                {
+                    times--;
+                    if (times == 0)
+                    {
+                        Console.WriteLine(String.Format("Sum of the numbers of all pots which contain a plant after {0} generations {1}", g, plantSum));
+                        Console.WriteLine(String.Format("Sum of the numbers of all pots which contain a plant after {0} generations {1}", generationsQuantity, plantSum + (generationsQuantity - g - 1) * diffSum));
+                        Console.ReadLine();
+                        return;
+                    }
+                }
+
+                lastGen = curGen;
            }
-
-            var plantQuantity = curGen.Select((c, i) => new { c, i }).Where(ci => ci.c == '#').Sum(ci => ci.i + offset);
-
-            Console.WriteLine(String.Format("Sum of the numbers of all pots which contain a plant after 20 generations {0}", plantQuantity));
-            Console.ReadLine();
         }
 
         public static (string InitialState, Dictionary<string, char> Notes) PrepareInput(bool isTest)
