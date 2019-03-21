@@ -48,22 +48,18 @@ namespace CsConsoleApplication
 
         private static Dictionary<string, string> _crosses = new Dictionary<string, string>
         {
-            {"^s",  "<l"},
-            {">s",  "^l"},
-            {"vs",  ">l"},
-            {"<s",  "vl"},
-            {"^l",  "^f"},
-            {">l",  ">f"},
-            {"vl",  "vf"},
-            {"<l",  "<f"},
-            {"^f",  ">r"},
-            {">f",  "vr"},
-            {"vf",  "<r"},
-            {"<f",  "^r"},
-            {"^r",  "^s"},
-            {">r",  ">s"},
-            {"vr",  "vs"},
-            {"<r",  "<s"},
+            {"^r",  "<l"},
+            {">r",  "^l"},
+            {"vr",  ">l"},
+            {"<r",  "vl"},
+            {"^l",  "^s"},
+            {">l",  ">s"},
+            {"vl",  "vs"},
+            {"<l",  "<s"},
+            {"^s",  ">r"},
+            {">s",  "vr"},
+            {"vs",  "<r"},
+            {"<s",  "^r"},
         };
 
         private static char[][] _cartsMap;
@@ -120,14 +116,25 @@ namespace CsConsoleApplication
                     }
                 }
 
-                if (true)
+                if (false)
                     PrintMapState();
 
                 if (!isTest) PrintCartStates();
             }
         }
+
         public static void PrintMapState()
         {
+
+            Console.ForegroundColor = ConsoleColor.White;
+            foreach (var n in new List<int> { 100, 10, 1 })
+            {
+                Console.Write("".PadRight((int)Math.Log10(_cartsMap.Length) + 1));
+                foreach (var i in Enumerable.Range(0, _cartsMap.Select(l => l.Length).Max()))
+                    Console.Write((i / n == 0) ? " " : (i / n - i / n / 10 * 10).ToString());
+                Console.WriteLine();
+            }
+
             var copyCartsMap = _cartsMap.Select(l => l.ToList()).ToList();
 
             foreach (var cartState in _cartStates)
@@ -135,8 +142,10 @@ namespace CsConsoleApplication
                 copyCartsMap[cartState.i][cartState.j] = cartState.Direction;
             }
 
-            foreach (var line in copyCartsMap)
+            foreach (var (line, i) in copyCartsMap.Select((line, i) => (line, i)))
             {
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write(i.ToString().PadLeft((int)Math.Log10(_cartsMap.Length) + 1, ' '));
                 foreach (var c in line)
                 {
                     if ("^>v<".Contains(c))
@@ -202,8 +211,8 @@ namespace CsConsoleApplication
                                     j = ijc.j, 
                                     //Direction: "^>v<".Select((cc, ci) => (cc, ci)).Where(ccic => ccic.cc == ijc.c).Select(ccic => ccic.ci).Single(),
                                     Direction = ijc.c,
-                                    LastTurn = 's'
-                                })     // option on the last cross: l - left, f - first straight, r - right, s - second straight
+                                    LastTurn = 'r'
+                                })     // option on the previous cross: l - left, s - straight, r - right
                 .ToList();
 
            var neighbours = initialCartStates
