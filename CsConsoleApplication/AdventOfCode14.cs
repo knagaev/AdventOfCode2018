@@ -12,31 +12,76 @@ namespace CsConsoleApplication
 
         public static void Run1(bool isTest = true)
         {
-            var recipesQtys = PrepareInput(isTest);
+           var results = PrepareInput1(isTest);
 
            var recipesScoreBoard = RecipesScoreBoard.Instance;
-           foreach (var recipesQty in recipesQtys)
+           foreach (var result in results)
             {
-                var tenRecipesScore = recipesScoreBoard.GetTenRecipesScore(recipesQty);
-                Console.WriteLine(String.Format("The scores of the ten recipes after {0} is {1}", recipesQty, tenRecipesScore));
+                var tenRecipesScore = recipesScoreBoard.GetTenRecipesScore(result.RecipesQty);
+                Console.WriteLine(String.Format("The scores of the ten recipes after {0} is {1} (must be {2})", result.RecipesQty, tenRecipesScore, result.Score));
                 Console.ReadLine();
             }
-
         }
-        public static List<int> PrepareInput(bool isTest)
+
+        public static void Run2(bool isTest = true)
         {
-            var results = isTest ? ReadTestInput() : ReadInput();
+            var results = PrepareInput2(isTest);
+
+            var recipesScoreBoard = RecipesScoreBoard.Instance;
+            foreach (var result in results)
+            {
+                var recipesQty = recipesScoreBoard.GetFirstRecipesWithScore(result.Score);
+                Console.WriteLine(String.Format("{0} recipes appeared before score {1} (must be {2})", recipesQty, result.Score, result.RecipesQty));
+                Console.ReadLine();
+            }
+        }
+
+        public static List<(int RecipesQty, string Score)> PrepareInput1(bool isTest)
+        {
+            var results = isTest ? ReadTestInput1() : ReadInput1();
 
             return results;
         }
-        public static List<int> ReadTestInput()
+        public static List<(int RecipesQty, string Score)> ReadTestInput1()
         {
-            var input = new List<int> { 9, 5, 18, 2018 };
+            var input = new List<(int RecipesQty, string Score)>
+            {
+                (9, "5158916779"),
+                (5, "0124515891"),
+                (18, "9251071085"),
+                (2018, "5941429882"),
+            };
             return input;
         }
-        public static List<int> ReadInput()
+        public static List<(int RecipesQty, string Score)> ReadInput1()
         {
-            var input = new List<int> { 440231 };
+            var input = new List<(int RecipesQty, string Score)> { (440231, "") };
+            return input;
+        }
+
+        public static List<(int RecipesQty, string Score)> PrepareInput2(bool isTest)
+        {
+            var results = isTest ? ReadTestInput2() : ReadInput2();
+
+            return results;
+        }
+        public static List<(int RecipesQty, string Score)> ReadTestInput2()
+        {
+            var input = new List<(int RecipesQty, string Score)>
+            {
+                (9, "51589"),
+                (5, "01245"),
+                (18, "92510"),
+                (2018, "59414"),
+            };
+            return input;
+        }
+        public static List<(int RecipesQty, string Score)> ReadInput2()
+        {
+            var input = new List<(int RecipesQty, string Score)>
+            { 
+                (0, "440231"),
+            };
             return input;
         }
     }
@@ -75,6 +120,13 @@ namespace CsConsoleApplication
 
         private int AddRecipe()
         {
+            if (_count > _recipes.Length - 2)
+            {
+                var temp_recipes = new int[_recipes.Length * 2];
+                Array.Copy(_recipes, temp_recipes, _count);
+                _recipes = temp_recipes;
+            }
+
             int newRecipe = _recipes[_firstElf] + _recipes[_secondElf];
 
             if (newRecipe > 9)
@@ -107,6 +159,55 @@ namespace CsConsoleApplication
             }
 
             return string.Join("", _recipes.Skip(afterRecipesQty).Take(ScoreQty));
+        }
+
+        public int GetFirstRecipesWithScore(string score)
+        {
+            var scoreAsArray = score.ToArray().Select(c => int.Parse(c.ToString())).ToArray();
+
+            if (_count > scoreAsArray.Length)
+            {
+                for (int i = 0; i < _count - scoreAsArray.Length; i++)
+                {
+                    bool good = true;
+                    for (int j = 0; j < scoreAsArray.Length; j++)
+                    {
+                        if (_recipes[i + j] != scoreAsArray[j])
+                        {
+                            good = false;
+                            break;
+                        }
+                    }
+                    if (good)
+                        return i;
+                }
+            }
+
+            int count = _count;
+            while (true)
+            {
+                int newCount = AddRecipe();
+
+                if (newCount > scoreAsArray.Length)
+                {
+                    for (int offset = newCount - count; offset > 0; offset--)
+                    {
+                        bool good = true;
+                        for (int i = 0; i < scoreAsArray.Length; i++)
+                        {
+                            if (_recipes[_count - (scoreAsArray.Length + offset - 1) + i] != scoreAsArray[i])
+                            {
+                                good = false;
+                                break;
+                            }
+                        }
+                        if (good)
+                            return (_count - (scoreAsArray.Length + offset - 1));
+                    }
+                }
+
+                count = newCount;
+            }
         }
     }
 
