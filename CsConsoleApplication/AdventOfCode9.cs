@@ -51,7 +51,7 @@ namespace CsConsoleApplication
 
                 if (false)
                 {
-                    game.PrintGameState();
+                    game.PrintState();
                 }
             }
 
@@ -116,6 +116,12 @@ namespace CsConsoleApplication
             _current = 0;
         }
 
+        public DoubleLinkedList(int element, int previous, int next)
+        {
+            _list = new Dictionary<int, (int Previous, int Next)> { { element, (previous, next) } };
+            _current = element;
+        }
+
         public void Insert(int element)
         {
             var after = _list[_current].Next;
@@ -137,7 +143,7 @@ namespace CsConsoleApplication
             _current = element;
         }
 
-        public void PrintGameState()
+        public void PrintState()
         {
             int pointer = 0;
             while (true)
