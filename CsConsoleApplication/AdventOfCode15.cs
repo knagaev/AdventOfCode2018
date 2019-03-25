@@ -46,7 +46,7 @@ namespace CsConsoleApplication
             while (true)
             {
 
-                foreach (var unit in Units)
+                foreach (var unit in Units.OrderBy(u => u.I).ThenBy(u => u.J))
                 {
                     if (true)
                         PrintCombatState();
@@ -80,6 +80,7 @@ namespace CsConsoleApplication
                     }
                 }
                 rounds++;
+                Console.WriteLine(String.Format("Round {0}", rounds));
             }
         }
 
@@ -87,15 +88,26 @@ namespace CsConsoleApplication
         {
             var enemyKind = unit.Kind == 'G' ? 'E' : 'G';
 
-            foreach (var offset in offsets)
-            {
-                if (Map[unit.I + offset.i][unit.J + offset.j] == enemyKind)
-                {
-                    var adjacentEnemy = Units.Where(e => e.I == unit.I + offset.i && e.J == unit.J + offset.j).Single();
-                    adjacentEnemy.HitPoints -= Unit.AttackPower;
+            var adjacentEnemies = Units
+                .Where(u => u.HitPoints > 0 
+                    && u.Kind == enemyKind
+                    && offsets
+                    .Any(o => u.I + o.i == unit.I && u.J + o.j == unit.J))
+                .Select(u => u)
+                .OrderBy(u => u.I)
+                .ThenBy(u => u.J)
+                .ToList();
 
-                    return true;
-                }
+            if (adjacentEnemies.Count() > 0)
+            {
+                var adjacentEnemy = adjacentEnemies.FirstOrDefault();
+                adjacentEnemy.HitPoints -= Unit.AttackPower;
+
+                Console.WriteLine(String.Format("Unit {0} at {1} attacked unit {2} at {3} (HP {4})", 
+                    unit.Kind, (unit.I, unit.J), 
+                    adjacentEnemy.Kind, (adjacentEnemy.I, adjacentEnemy.J), adjacentEnemy.HitPoints));
+
+                return true;
             }
 
             return false;
@@ -126,7 +138,7 @@ namespace CsConsoleApplication
                             var previousStep = (e.i, e.j);
                             while (reverseDistance > 0)
                             {
-                                previousStep = offsets.AsEnumerable().Reverse()
+                                previousStep = offsets
                                     .Select(ro => new { ro.i, ro.j, d = distanceMap[previousStep.i + ro.i][previousStep.j + ro.j] })
                                     .Where(ijd => ijd.d == reverseDistance)
                                     .Select(ijd => (previousStep.i + ijd.i, previousStep.j + ijd.j))
