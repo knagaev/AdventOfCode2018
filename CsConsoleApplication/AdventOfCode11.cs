@@ -51,7 +51,7 @@ namespace CsConsoleApplication
                         }
                     }
 
-                    if (false)
+                    if (true)
                     {
                         PrintGridState(summedAreaGrid, (0, 0));
                     }
@@ -111,7 +111,7 @@ namespace CsConsoleApplication
                     }
                 }
 
-                if (false)
+                if (true)
                 {
                     PrintGridState(summedAreaGrid, (0, 0));
                 }

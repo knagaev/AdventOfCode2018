@@ -11,7 +11,7 @@ namespace CsConsoleApplication
     {
         public static void Run1(bool isTest = true)
         {
-            var inputs = PrepareInput(isTest);
+            var inputs = isTest? PrepareInput(ReadTestInput1) : PrepareInput(ReadInput1);
 
             foreach (var input in inputs)
             {
@@ -21,10 +21,30 @@ namespace CsConsoleApplication
                 Console.ReadLine();
             }
         }
-
-        public static List<(Combat InitialState, int Outcome)> PrepareInput(bool isTest)
+        public static void Run2(bool isTest = true)
         {
-            var inputs = isTest ? ReadTestInput() : ReadInput();
+            //var inputs = PrepareInput(isTest);
+            var inputs = isTest ? PrepareInput(ReadTestInput2) : PrepareInput(ReadInput2);
+
+            foreach (var input in inputs)
+            {
+                var outcome = 0;
+                int elfAttackPower = 14;
+                while (true)
+                {
+                    var combat = new Combat(input.InitialState, elfAttackPower, false);
+                    outcome = combat.GetOutcome(elvesMustSurvive: true);
+                    if (outcome > 0) break;
+                    elfAttackPower++;
+                }
+                Console.WriteLine(String.Format("The outcome is {0} (must be {1}) at elf attack power {2}", outcome, input.Outcome, elfAttackPower));
+                Console.ReadLine();
+            }
+        }
+
+        public static List<(Combat InitialState, int Outcome)> PrepareInput1(bool isTest)
+        {
+            var inputs = isTest ? ReadTestInput1() : ReadInput1();
 
             var combats = new List<(Combat InitialState, int Outcome)>();
 
@@ -40,7 +60,25 @@ namespace CsConsoleApplication
 
             return combats;
         }
-        public static List<(List<string> CombatMapLines, int Outcome)> ReadTestInput()
+        public static List<(Combat InitialState, int Outcome)> PrepareInput2(bool isTest)
+        {
+            var inputs = isTest ? ReadTestInput2() : ReadInput2();
+
+            var combats = new List<(Combat InitialState, int Outcome)>();
+
+            foreach (var input in inputs)
+            {
+                var combat = new Combat
+                (
+                    map: input.CombatMapLines.Select(cml => cml.Select(c => (c == '#') ? '#' : '.').ToArray()).ToArray(),
+                    units: input.CombatMapLines.SelectMany((cml, i) => cml.Select((c, j) => new Unit(i, j, c))).Where(u => (u.Kind == 'E' || u.Kind == 'G')).ToList()
+                );
+                combats.Add((combat, input.Outcome));
+            }
+
+            return combats;
+        }
+        public static List<(List<string> CombatMapLines, int Outcome)> ReadTestInput1()
         {
             var input = new List<(List<string> CombatMapLines, int Outcome)>
             {
@@ -114,7 +152,71 @@ namespace CsConsoleApplication
             };
             return input;
         }
-        public static List<(List<string> CombatMapLines, int Outcome)> ReadInput()
+        public static List<(List<string> CombatMapLines, int Outcome, int ElfAttackPower)> ReadTestInput2()
+        {
+            var input = new List<(List<string> CombatMapLines, int Outcome, int ElfAttackPower)>
+            {
+                (new List<string>
+                {
+                "#######",
+                "#.G...#",
+                "#...EG#",
+                "#.#.#G#",
+                "#..G#E#",
+                "#.....#",
+                "#######",
+                }, 4988, 15),
+
+                (new List<string>
+                {
+                "#######",
+                "#E..EG#",
+                "#.#G.E#",
+                "#E.##E#",
+                "#G..#.#",
+                "#..E#.#",
+                "#######",
+                }, 31284, 4),
+
+                (new List<string>
+                {
+                "#######",
+                "#E.G#.#",
+                "#.#G..#",
+                "#G.#.G#",
+                "#G..#.#",
+                "#...E.#",
+                "#######",
+                }, 3478, 15),
+
+                (new List<string>
+                {
+                "#######",
+                "#.E...#",
+                "#.#..G#",
+                "#.###.#",
+                "#E#G#G#",
+                "#...#G#",
+                "#######",
+                }, 6474, 12),
+
+                (new List<string>
+                {
+                "#########",
+                "#G......#",
+                "#.E.#...#",
+                "#..##..G#",
+                "#...##..#",
+                "#...#...#",
+                "#.G...G.#",
+                "#.....G.#",
+                "#########",
+                }, 1140, 34),
+            };
+            return input;
+        }
+
+        public static List<(List<string> CombatMapLines, int Outcome)> ReadInput1()
         {
             var input = new List<(List<string> CombatMapLines, int Outcome)>
             {
@@ -156,12 +258,55 @@ namespace CsConsoleApplication
            };
             return input;
         }
+        public static List<(List<string> CombatMapLines, int Outcome, int ElfAttackPower)> ReadInput2()
+        {
+            var input = new List<(List<string> CombatMapLines, int Outcome, int ElfAttackPower)>
+            {
+                (new List<string>
+                {
+                "################################",
+                "##############..###G.G#####..###",
+                "#######...#####........#.##.####",
+                "#######..G######.#...........###",
+                "#######..G..###.............####",
+                "########.GG.##.G.##.......E#####",
+                "##########........#........##..#",
+                "##############GG...#...........#",
+                "##############.....#..........##",
+                "#G.G...####....#G......G.#...###",
+                "#G..#..##........G.........E.###",
+                "#..###...G#............E.......#",
+                "#...G...G.....#####............#",
+                "#....#....#G.#######...........#",
+                "#.##....#.#.#########.#..#...E.#",
+                "####...##G..#########.....E...E#",
+                "#####...#...#########.#.#....E##",
+                "#####.......#########.###......#",
+                "######......#########...######.#",
+                "########.....#######..#..#######",
+                "########......#####...##.#######",
+                "########............E.##.#######",
+                "####.........##......##..#######",
+                "####....#..E...E...####.########",
+                "####.....#...........##.########",
+                "#####....##.#........###########",
+                "#####.....#####....#############",
+                "#####.#..######....#############",
+                "####..######....################",
+                "####..###.#.....################",
+                "####...##...####################",
+                "################################",
+                }, 0, 0),
+           };
+            return input;
+        }
     }
 
 
     internal class Unit
     {
-        public const int AttackPower = 3;
+        public readonly int AttackPower;
+        public const int BaseAttackPower = 3;
         public const int BaseHitPoints = 200;
 
         public int I;
@@ -169,12 +314,13 @@ namespace CsConsoleApplication
         public readonly char Kind;
         public int HitPoints;
 
-        public Unit(int i, int j, char kind)
+        public Unit(int i, int j, char kind, int attackPower = 3)
         {
             this.I = i;
             this.J = j;
             this.Kind = kind;
             this.HitPoints = Unit.BaseHitPoints;
+            this.AttackPower = attackPower;
         }
     }
 
@@ -194,8 +340,10 @@ namespace CsConsoleApplication
             this.IsDebug = isDebug;
         }
         public Combat(Combat c, bool isDebug = false) : this(c.Map, c.Units, isDebug){}
+        public Combat(Combat c, int elfAttackPower, bool isDebug = false) : 
+            this(c.Map, c.Units.Select(u => new Unit(u.I, u.J, u.Kind, (u.Kind == 'G') ? Unit.BaseAttackPower : elfAttackPower)).ToList(), isDebug) {}
 
-        public int GetOutcome()
+        public int GetOutcome(bool elvesMustSurvive = false)
         {
             int rounds = 0;
             while (true)
@@ -206,6 +354,9 @@ namespace CsConsoleApplication
                     if (unit.HitPoints <= 0) continue;
 
                     bool someoneHasAttacked = AttackBy(unit);
+
+                    if (someoneHasAttacked && elvesMustSurvive && Units.Any(u => u.Kind == 'E' && u.HitPoints < 1))
+                        return 0;
 
                     if (someoneHasAttacked &&
                             (!Units.Any(u => u.HitPoints > 0 && u.Kind == 'E') ||
@@ -284,7 +435,7 @@ namespace CsConsoleApplication
             if (adjacentEnemies.Count() > 0)
             {
                 var adjacentEnemy = adjacentEnemies.FirstOrDefault();
-                adjacentEnemy.HitPoints -= Unit.AttackPower;
+                adjacentEnemy.HitPoints -= unit.AttackPower;
 
                 fighter = unit;
                 defender = adjacentEnemy;

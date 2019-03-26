@@ -49,7 +49,7 @@ namespace CsConsoleApplication
                 else
                     game.Insert(i + 1);
 
-                if (false)
+                if (true)
                 {
                     game.PrintState();
                 }
