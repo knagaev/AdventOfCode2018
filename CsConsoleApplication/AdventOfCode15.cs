@@ -15,7 +15,7 @@ namespace CsConsoleApplication
 
             foreach (var input in inputs)
             {
-                var combat = new Combat(input.InitialState, true);
+                var combat = new Combat(input.InitialState, false);
                 var outcome = combat.GetOutcome();
                 Console.WriteLine(String.Format("The outcome is {0} (must be {1})", outcome, input.Outcome));
                 Console.ReadLine();
@@ -219,8 +219,6 @@ namespace CsConsoleApplication
                     }
                 }
 
-                Console.ReadLine();
-
                 rounds++;
             }
         }
@@ -302,14 +300,14 @@ namespace CsConsoleApplication
 
         private (int Distance, (int i, int j) NextStep) GetDistanceAndNextStep(Unit from, Unit to)
         {
-            // free cell = -1, obstacle = int.MinValue
+            //// free cell = -1, obstacle = int.MinValue
             var distanceMap = Map.Select(l => l.Select(c => (c == '.') ? -1 : int.MinValue).ToArray()).ToArray();
             foreach (var unit in Units.Where(u => u.HitPoints > 0))
             {
                 distanceMap[unit.I][unit.J] = int.MinValue;
             }
-            distanceMap[from.I][from.J] = 0;
-            distanceMap[to.I][to.J] = -1;
+            distanceMap[from.I][from.J] = -1;
+            distanceMap[to.I][to.J] = 0;
 
             int biggest = 0;
             while (true)
@@ -319,20 +317,20 @@ namespace CsConsoleApplication
                 {
                     foreach (var offset in offsets)
                     {
-                        if (to.I == e.i + offset.i && to.J == e.j + offset.j)
+                        if (from.I == e.i + offset.i && from.J == e.j + offset.j)
                         {
-                            int reverseDistance = biggest - 1;
-                            var previousStep = (e.i, e.j);
-                            while (reverseDistance > 0)
-                            {
-                                previousStep = offsets
-                                    .Select(ro => new { ro.i, ro.j, d = distanceMap[previousStep.i + ro.i][previousStep.j + ro.j] })
-                                    .Where(ijd => ijd.d == reverseDistance)
-                                    .Select(ijd => (previousStep.i + ijd.i, previousStep.j + ijd.j))
-                                    .First();
+                            var previousStep = distanceMap
+                                .Select((l, i) => (l, i))
+                                .Skip(from.I - 1).Take(3)
+                                .SelectMany(li => li.l
+                                    .Select((c, j) => new { li.i, j, c })
+                                    .Skip(from.J - 1).Take(3))
+                                .Where(ijc => ijc.c == biggest)
+                                .OrderBy(ijc => ijc.i)
+                                .ThenBy(ijc => ijc.j)
+                                .Select(ijc => (ijc.i, ijc.j))
+                                .FirstOrDefault();
 
-                                reverseDistance--;
-                            }
                             return (biggest, previousStep);
                         }
 
