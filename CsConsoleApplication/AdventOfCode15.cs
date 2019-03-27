@@ -11,7 +11,8 @@ namespace CsConsoleApplication
     {
         public static void Run1(bool isTest = true)
         {
-            var inputs = isTest? PrepareInput(ReadTestInput1) : PrepareInput(ReadInput1);
+            var inputs = PrepareInput1(isTest);
+            //var inputs = isTest? PrepareInput1(ReadTestInput1) : PrepareInput1(ReadInput1);
 
             foreach (var input in inputs)
             {
@@ -23,21 +24,26 @@ namespace CsConsoleApplication
         }
         public static void Run2(bool isTest = true)
         {
-            //var inputs = PrepareInput(isTest);
-            var inputs = isTest ? PrepareInput(ReadTestInput2) : PrepareInput(ReadInput2);
+            var inputs = PrepareInput2(isTest);
+            //var inputs = isTest ? PrepareInput2(ReadTestInput2) : PrepareInput2(ReadInput2);
 
             foreach (var input in inputs)
             {
                 var outcome = 0;
-                int elfAttackPower = 14;
+                int elfAttackPower = 19;
                 while (true)
                 {
                     var combat = new Combat(input.InitialState, elfAttackPower, false);
                     outcome = combat.GetOutcome(elvesMustSurvive: true);
-                    if (outcome > 0) break;
+                    if (outcome > 0)
+                    {
+                        combat.PrintCombatState();
+                        break;
+                    }
                     elfAttackPower++;
+                    //Console.ReadLine();
                 }
-                Console.WriteLine(String.Format("The outcome is {0} (must be {1}) at elf attack power {2}", outcome, input.Outcome, elfAttackPower));
+                Console.WriteLine(String.Format("The outcome is {0} (must be {1}) at elf attack power {2} (must be {3})", outcome, input.Outcome, elfAttackPower, input.ElfAttackPower));
                 Console.ReadLine();
             }
         }
@@ -60,11 +66,11 @@ namespace CsConsoleApplication
 
             return combats;
         }
-        public static List<(Combat InitialState, int Outcome)> PrepareInput2(bool isTest)
+        public static List<(Combat InitialState, int Outcome, int ElfAttackPower)> PrepareInput2(bool isTest)
         {
             var inputs = isTest ? ReadTestInput2() : ReadInput2();
 
-            var combats = new List<(Combat InitialState, int Outcome)>();
+            var combats = new List<(Combat InitialState, int Outcome, int ElfAttackPower)>();
 
             foreach (var input in inputs)
             {
@@ -73,7 +79,7 @@ namespace CsConsoleApplication
                     map: input.CombatMapLines.Select(cml => cml.Select(c => (c == '#') ? '#' : '.').ToArray()).ToArray(),
                     units: input.CombatMapLines.SelectMany((cml, i) => cml.Select((c, j) => new Unit(i, j, c))).Where(u => (u.Kind == 'E' || u.Kind == 'G')).ToList()
                 );
-                combats.Add((combat, input.Outcome));
+                combats.Add((combat, input.Outcome, input.ElfAttackPower));
             }
 
             return combats;
@@ -348,8 +354,8 @@ namespace CsConsoleApplication
             int rounds = 0;
             while (true)
             {
-                var aliveUnits = Units.Where(u => u.HitPoints > 0).OrderBy(u => u.I).ThenBy(u => u.J).Select((u, i) => (u, i)).ToList();
-                foreach (var (unit, i) in aliveUnits)
+                var unitsAliveOnTurnBegin = Units.Where(u => u.HitPoints > 0).OrderBy(u => u.I).ThenBy(u => u.J).Select((u, i) => (u, i)).ToList();
+                foreach (var (unit, i) in unitsAliveOnTurnBegin)
                 {
                     if (unit.HitPoints <= 0) continue;
 
@@ -362,15 +368,17 @@ namespace CsConsoleApplication
                             (!Units.Any(u => u.HitPoints > 0 && u.Kind == 'E') ||
                             !Units.Any(u => u.HitPoints > 0 && u.Kind == 'G')))
                     {
-                        if (i == aliveUnits.Count() - 1) rounds++;
+                        if (!unitsAliveOnTurnBegin.Any(ui => ui.i > i && ui.u.HitPoints > 0)) rounds++;
 
                         Console.WriteLine(String.Format("HitPoints {0} rounds {1}",
                             string.Join(", ", Units.Where(u => u.HitPoints > 0).Select(u => u.Kind.ToString() + u.HitPoints)), rounds));
                         return Units.Where(u => u.HitPoints > 0).Select(u => u.HitPoints).Sum() * rounds;
                     }
                 }
-
                 rounds++;
+                Console.WriteLine(String.Format("HitPoints {0} rounds {1}",
+                    string.Join(", ", Units.Where(u => u.HitPoints > 0).Select(u => u.Kind.ToString() + u.HitPoints)), rounds));
+                //Console.ReadLine();
             }
         }
         private bool MoveIfCan(Unit unit)
@@ -410,21 +418,17 @@ namespace CsConsoleApplication
                     .Any(o => u.I + o.i == unit.I && u.J + o.j == unit.J))
                 .Select(u => u)
                 .OrderBy(u => u.HitPoints)
-                .ToList();
+                .ThenBy(u => u.I)
+                .ThenBy(u => u.J);
 
-            if (adjacentEnemies.Count() == 0)
+            var adjacentEnemiesList = adjacentEnemies.ToList();
+
+            if (adjacentEnemiesList.Count() == 0)
             {
                 if (MoveIfCan(unit))
                 {
                     mover = unit;
-                    adjacentEnemies = Units
-                                    .Where(u => u.HitPoints > 0
-                                        && u.Kind != unit.Kind
-                                        && offsets
-                                        .Any(o => u.I + o.i == unit.I && u.J + o.j == unit.J))
-                                    .Select(u => u)
-                                    .OrderBy(u => u.HitPoints)
-                                    .ToList();
+                    adjacentEnemiesList = adjacentEnemies.ToList();
                 }
                 else
                 {
@@ -432,9 +436,9 @@ namespace CsConsoleApplication
                 }
             }
 
-            if (adjacentEnemies.Count() > 0)
+            if (adjacentEnemiesList.Count() > 0)
             {
-                var adjacentEnemy = adjacentEnemies.FirstOrDefault();
+                var adjacentEnemy = adjacentEnemiesList.FirstOrDefault();
                 adjacentEnemy.HitPoints -= unit.AttackPower;
 
                 fighter = unit;
@@ -451,51 +455,60 @@ namespace CsConsoleApplication
 
         private (int Distance, (int i, int j) NextStep) GetDistanceAndNextStep(Unit from, Unit to)
         {
-            //// free cell = -1, obstacle = int.MinValue
-            var distanceMap = Map.Select(l => l.Select(c => (c == '.') ? -1 : int.MinValue).ToArray()).ToArray();
-            foreach (var unit in Units.Where(u => u.HitPoints > 0))
-            {
-                distanceMap[unit.I][unit.J] = int.MinValue;
-            }
-            distanceMap[from.I][from.J] = -1;
-            distanceMap[to.I][to.J] = 0;
+            (int Distance, (int i, int j) NextStep) result = (int.MaxValue, (-1, -1));
 
-            int biggest = 0;
-            while (true)
+            foreach (var adjacentCell in offsets.Select(o => (to.I + o.i, to.J + o.j)))
             {
-                bool updated = false;
-                foreach (var e in distanceMap.SelectMany((l, i) => l.Select((c, j) => new { c, i, j })).Where(cij => cij.c == biggest).OrderBy(cij => cij.i).ThenBy(cij => cij.j))
+                if (Map[adjacentCell.Item1][adjacentCell.Item2] != '.') continue;
+
+                //// free cell = -1, obstacle = int.MinValue
+                var distanceMap = Map.Select(l => l.Select(c => (c == '.') ? -1 : int.MinValue).ToArray()).ToArray();
+                foreach (var unit in Units.Where(u => u.HitPoints > 0))
                 {
-                    foreach (var offset in offsets)
+                    distanceMap[unit.I][unit.J] = int.MinValue;
+                }
+                distanceMap[from.I][from.J] = -1;
+                //distanceMap[to.I][to.J] = 0;
+                distanceMap[adjacentCell.Item1][adjacentCell.Item2] = 0;
+
+                int biggest = 0;
+                while (true)
+                {
+                    bool updated = false;
+                    foreach (var e in distanceMap.SelectMany((l, i) => l.Select((c, j) => new { c, i, j })).Where(cij => cij.c == biggest).OrderBy(cij => cij.i).ThenBy(cij => cij.j))
                     {
-                        if (from.I == e.i + offset.i && from.J == e.j + offset.j)
+                        foreach (var offset in offsets)
                         {
-                            var previousStep = distanceMap
-                                .Select((l, i) => (l, i))
-                                .Skip(from.I - 1).Take(3)
-                                .SelectMany(li => li.l
-                                    .Select((c, j) => new { li.i, j, c })
-                                    .Skip(from.J - 1).Take(3))
-                                .Where(ijc => ijc.c == biggest)
-                                .OrderBy(ijc => ijc.i)
-                                .ThenBy(ijc => ijc.j)
-                                .Select(ijc => (ijc.i, ijc.j))
-                                .FirstOrDefault();
+                            if (from.I == e.i + offset.i && from.J == e.j + offset.j)
+                            {
+                                var previousStep = distanceMap
+                                    .Select((l, i) => (l, i))
+                                    .Skip(from.I - 1).Take(3)
+                                    .SelectMany(li => li.l
+                                        .Select((c, j) => new { li.i, j, c })
+                                        .Skip(from.J - 1).Take(3))
+                                    .Where(ijc => ijc.c == biggest)
+                                    .OrderBy(ijc => ijc.i)
+                                    .ThenBy(ijc => ijc.j)
+                                    .Select(ijc => (ijc.i, ijc.j))
+                                    .FirstOrDefault();
 
-                            return (biggest, previousStep);
-                        }
+                                if (biggest < result.Distance)
+                                    result = (biggest, previousStep);
+                            }
 
-                        if (distanceMap[e.i + offset.i][e.j + offset.j] == -1)
-                        {
-                            distanceMap[e.i + offset.i][e.j + offset.j] = biggest + 1;
-                            updated = true;
+                            if (distanceMap[e.i + offset.i][e.j + offset.j] == -1)
+                            {
+                                distanceMap[e.i + offset.i][e.j + offset.j] = biggest + 1;
+                                updated = true;
+                            }
                         }
                     }
+                    biggest++;
+                    if (!updated) break;
                 }
-                biggest++;
-                if (!updated) break;
             }
-            return (int.MaxValue, (-1, -1));
+            return result;
         }
 
         public void PrintCombatState(Unit mover = null, Unit stopper = null, Unit fighter = null, Unit defender = null)
@@ -512,7 +525,7 @@ namespace CsConsoleApplication
             {
                 foreach (var (c, j) in l.Select((c, j) => (c, j)))
                 {
-                    Console.ForegroundColor = ConsoleColor.Blue;
+                    Console.ForegroundColor = ConsoleColor.Cyan;
 
                     if (mover != null && i == mover.I && j == mover.J) Console.ForegroundColor = ConsoleColor.Green;
                     if (stopper != null && i == stopper.I && j == stopper.J) Console.ForegroundColor = ConsoleColor.Gray;
@@ -522,29 +535,40 @@ namespace CsConsoleApplication
 
                     Console.Write(c);
                 }
+
+                foreach (var unit in Units.Where(u => u.HitPoints > 0 && u.I == i).OrderBy(u => u.J))
+                {
+                    Console.Write(" " + unit.Kind + "(" + unit.HitPoints + ")");
+                }
                 Console.WriteLine();
             }
 
             Console.ForegroundColor = memConsoleForegroundColor;
-            if (mover != null)
+
+            if (mover != null && fighter != null && defender != null)
             {
-                if (fighter == null)
-                    Console.WriteLine(String.Format("Unit {0} goes to {1}",
-                        mover.Kind, (mover.I, mover.J)));
-                else
                     Console.WriteLine(String.Format("Unit {0} goes to {1} and attacked unit {2} at {3} (HP {4})",
                         mover.Kind, (mover.I, mover.J),
                         defender.Kind, (defender.I, defender.J), defender.HitPoints));
             }
-            else
+
+            if (mover != null && fighter == null)
             {
-                if (fighter == null)
-                    Console.WriteLine(String.Format("Unit {0} stops at {1}",
-                        stopper.Kind, (stopper.I, stopper.J)));
-                else
-                    Console.WriteLine(String.Format("Unit {0} stays at {1} and attacked unit {2} at {3} (HP {4})",
-                        fighter.Kind, (fighter.I, fighter.J),
-                        defender.Kind, (defender.I, defender.J), defender.HitPoints));
+                Console.WriteLine(String.Format("Unit {0} goes to {1}",
+                    mover.Kind, (mover.I, mover.J)));
+            }
+
+            if (stopper != null)
+            {
+                Console.WriteLine(String.Format("Unit {0} stops at {1}",
+                    stopper.Kind, (stopper.I, stopper.J)));
+            }
+
+            if (mover == null && fighter != null && defender != null)
+            {
+                Console.WriteLine(String.Format("Unit {0} stays at {1} and attacked unit {2} at {3} (HP {4})",
+                    fighter.Kind, (fighter.I, fighter.J),
+                    defender.Kind, (defender.I, defender.J), defender.HitPoints));
             }
 
             Console.WriteLine();
