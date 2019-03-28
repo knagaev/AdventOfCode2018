@@ -30,21 +30,39 @@ namespace CsConsoleApplication
             foreach (var input in inputs)
             {
                 var outcome = 0;
-                int elfAttackPower = 17;
+                int elfAttackPower = 4;
+                int losAttackPower = 0;
+                int winAttackPower = 0;
+                int winOutcome = 0;
                 while (true)
                 {
                     var combat = new Combat(input.InitialState, elfAttackPower, false);
                     outcome = combat.GetOutcome(elvesMustSurvive: true);
-                    if (outcome > 0)
-                    {
-                        combat.PrintCombatState();
-                        break;
-                    }
+
+                    combat.PrintCombatState();
                     Console.WriteLine(String.Format("The outcome is {0} at elf attack power {1}", outcome, elfAttackPower));
-                    elfAttackPower++;
-                    //Console.ReadLine();
+                    Console.ReadLine();
+
+                    if (outcome == 0)
+                    {
+                        losAttackPower = elfAttackPower;
+                    }
+                    else
+                    {
+                        winAttackPower = elfAttackPower;
+                        winOutcome = outcome;
+                    }
+
+                    if (winAttackPower - losAttackPower == 1)
+                        break;
+
+                    if (winAttackPower == 0)
+                        elfAttackPower *= 2;
+                    else
+                        elfAttackPower = (winAttackPower - losAttackPower) / 2 + losAttackPower;
+
                 }
-                Console.WriteLine(String.Format("The outcome is {0} (must be {1}) at elf attack power {2} (must be {3})", outcome, input.Outcome, elfAttackPower, input.ElfAttackPower));
+                Console.WriteLine(String.Format("The outcome is {0} (must be {1}) at elf attack power {2} (must be {3})", winOutcome, input.Outcome, winAttackPower, input.ElfAttackPower));
                 Console.ReadLine();
             }
         }
@@ -90,24 +108,24 @@ namespace CsConsoleApplication
             var input = new List<(List<string> CombatMapLines, int Outcome)>
             {
 
-                (new List<string>
-                {
-                    "###########",
-                    "#G..#....G#",
-                    "###..E#####",
-                    "###########",
-                }, 10804),
-
                 //(new List<string>
                 //{
-                //"#######",
-                //"#.G...#",
-                //"#...EG#",
-                //"#.#.#G#",
-                //"#..G#E#",
-                //"#.....#",
-                //"#######",
-                //}, 27730),
+                //    "###########",
+                //    "#G..#....G#",
+                //    "###..E#####",
+                //    "###########",
+                //}, 10804),
+
+                (new List<string>
+                {
+                "#######",
+                "#.G...#",
+                "#...EG#",
+                "#.#.#G#",
+                "#..G#E#",
+                "#.....#",
+                "#######",
+                }, 27730),
 
                 (new List<string>
                 {
@@ -236,75 +254,40 @@ namespace CsConsoleApplication
         {
             var input = new List<(List<string> CombatMapLines, int Outcome)>
             {
-                //(new List<string>
-                //{
-                //"################################",
-                //"##############..###G.G#####..###",
-                //"#######...#####........#.##.####",
-                //"#######..G######.#...........###",
-                //"#######..G..###.............####",
-                //"########.GG.##.G.##.......E#####",
-                //"##########........#........##..#",
-                //"##############GG...#...........#",
-                //"##############.....#..........##",
-                //"#G.G...####....#G......G.#...###",
-                //"#G..#..##........G.........E.###",
-                //"#..###...G#............E.......#",
-                //"#...G...G.....#####............#",
-                //"#....#....#G.#######...........#",
-                //"#.##....#.#.#########.#..#...E.#",
-                //"####...##G..#########.....E...E#",
-                //"#####...#...#########.#.#....E##",
-                //"#####.......#########.###......#",
-                //"######......#########...######.#",
-                //"########.....#######..#..#######",
-                //"########......#####...##.#######",
-                //"########............E.##.#######",
-                //"####.........##......##..#######",
-                //"####....#..E...E...####.########",
-                //"####.....#...........##.########",
-                //"#####....##.#........###########",
-                //"#####.....#####....#############",
-                //"#####.#..######....#############",
-                //"####..######....################",
-                //"####..###.#.....################",
-                //"####...##...####################",
-                //"################################",
-                //}, 0),
-                                (new List<string>
+                (new List<string>
                 {
-                    "################################",
-                    "#############################..#",
-                    "#############################..#",
-                    "#############################..#",
-                    "###########################...##",
-                    "##########################..####",
-                    "###########..#G.#########G..####",
-                    "#########G........#######....###",
-                    "#########...G.......G##........#",
-                    "#######G.................E...###",
-                    "#######.####...####..G..#...####",
-                    "######...#.........G..###....###",
-                    "#####....#....#####...####...###",
-                    "####.........#######.....#....##",
-                    "#.G..G.G..#G#########...G.....##",
-                    "#.###.......#########........###",
-                    "#...G.......#########..E.E..####",
-                    "#..G........#########......#####",
-                    "#....G...E.E#########......#####",
-                    "#........E...#######....########",
-                    "#......#...G..#####...E....#####",
-                    "#.........G................#####",
-                    "#..........G....####....########",
-                    "#................###....########",
-                    "#..........G......######.#######",
-                    "#.............###.##.....#######",
-                    "##......#....####E...E.....#####",
-                    "##......##...###.E.#..##.#######",
-                    "##...####..#####....############",
-                    "###..###...#######..############",
-                    "###..###..######################",
-                    "################################",
+"################################",
+"##############..###G.G#####..###",
+"#######...#####........#.##.####",
+"#######..G######.#...........###",
+"#######..G..###.............####",
+"########.GG.##.G.##.......E#####",
+"##########........#........##..#",
+"##############GG...#...........#",
+"##############.....#..........##",
+"#G.G...####....#G......G.#...###",
+"#G..#..##........G.........E.###",
+"#..###...G#............E.......#",
+"#...G...G.....#####............#",
+"#....#....#G.#######...........#",
+"#.##....#.#.#########.#..#...E.#",
+"####...##G..#########.....E...E#",
+"#####...#...#########.#.#....E##",
+"#####.......#########.###......#",
+"######......#########...######.#",
+"########.....#######..#..#######",
+"########......#####...##.#######",
+"########............E.##.#######",
+"####.........##......##..#######",
+"####....#..E...E...####.########",
+"####.....#...........##.########",
+"#####....##.#........###########",
+"#####.....#####....#############",
+"#####.#..######....#############",
+"####..######....################",
+"####..###.#.....################",
+"####...##...####################",
+"################################",
                 }, 0),
 
            };
@@ -314,76 +297,79 @@ namespace CsConsoleApplication
         {
             var input = new List<(List<string> CombatMapLines, int Outcome, int ElfAttackPower)>
             {
+                //Quitting after 48 total rounds
+                //Outcome: 54096
+                //Did it with attack_power 15
+                (new List<string> 
+                {
+                "################################",
+                "##############..###G.G#####..###",
+                "#######...#####........#.##.####",
+                "#######..G######.#...........###",
+                "#######..G..###.............####",
+                "########.GG.##.G.##.......E#####",
+                "##########........#........##..#",
+                "##############GG...#...........#",
+                "##############.....#..........##",
+                "#G.G...####....#G......G.#...###",
+                "#G..#..##........G.........E.###",
+                "#..###...G#............E.......#",
+                "#...G...G.....#####............#",
+                "#....#....#G.#######...........#",
+                "#.##....#.#.#########.#..#...E.#",
+                "####...##G..#########.....E...E#",
+                "#####...#...#########.#.#....E##",
+                "#####.......#########.###......#",
+                "######......#########...######.#",
+                "########.....#######..#..#######",
+                "########......#####...##.#######",
+                "########............E.##.#######",
+                "####.........##......##..#######",
+                "####....#..E...E...####.########",
+                "####.....#...........##.########",
+                "#####....##.#........###########",
+                "#####.....#####....#############",
+                "#####.#..######....#############",
+                "####..######....################",
+                "####..###.#.....################",
+                "####...##...####################",
+                "################################",
+                }, 0, 0),
                 //(new List<string>
                 //{
-                //"################################",
-                //"##############..###G.G#####..###",
-                //"#######...#####........#.##.####",
-                //"#######..G######.#...........###",
-                //"#######..G..###.............####",
-                //"########.GG.##.G.##.......E#####",
-                //"##########........#........##..#",
-                //"##############GG...#...........#",
-                //"##############.....#..........##",
-                //"#G.G...####....#G......G.#...###",
-                //"#G..#..##........G.........E.###",
-                //"#..###...G#............E.......#",
-                //"#...G...G.....#####............#",
-                //"#....#....#G.#######...........#",
-                //"#.##....#.#.#########.#..#...E.#",
-                //"####...##G..#########.....E...E#",
-                //"#####...#...#########.#.#....E##",
-                //"#####.......#########.###......#",
-                //"######......#########...######.#",
-                //"########.....#######..#..#######",
-                //"########......#####...##.#######",
-                //"########............E.##.#######",
-                //"####.........##......##..#######",
-                //"####....#..E...E...####.########",
-                //"####.....#...........##.########",
-                //"#####....##.#........###########",
-                //"#####.....#####....#############",
-                //"#####.#..######....#############",
-                //"####..######....################",
-                //"####..###.#.....################",
-                //"####...##...####################",
-                //"################################",
+                //    "################################",
+                //    "#############################..#",
+                //    "#############################..#",
+                //    "#############################..#",
+                //    "###########################...##",
+                //    "##########################..####",
+                //    "###########..#G.#########G..####",
+                //    "#########G........#######....###",
+                //    "#########...G.......G##........#",
+                //    "#######G.................E...###",
+                //    "#######.####...####..G..#...####",
+                //    "######...#.........G..###....###",
+                //    "#####....#....#####...####...###",
+                //    "####.........#######.....#....##",
+                //    "#.G..G.G..#G#########...G.....##",
+                //    "#.###.......#########........###",
+                //    "#...G.......#########..E.E..####",
+                //    "#..G........#########......#####",
+                //    "#....G...E.E#########......#####",
+                //    "#........E...#######....########",
+                //    "#......#...G..#####...E....#####",
+                //    "#.........G................#####",
+                //    "#..........G....####....########",
+                //    "#................###....########",
+                //    "#..........G......######.#######",
+                //    "#.............###.##.....#######",
+                //    "##......#....####E...E.....#####",
+                //    "##......##...###.E.#..##.#######",
+                //    "##...####..#####....############",
+                //    "###..###...#######..############",
+                //    "###..###..######################",
+                //    "################################",
                 //}, 0, 0),
-                (new List<string>
-                {
-                    "################################",
-                    "#############################..#",
-                    "#############################..#",
-                    "#############################..#",
-                    "###########################...##",
-                    "##########################..####",
-                    "###########..#G.#########G..####",
-                    "#########G........#######....###",
-                    "#########...G.......G##........#",
-                    "#######G.................E...###",
-                    "#######.####...####..G..#...####",
-                    "######...#.........G..###....###",
-                    "#####....#....#####...####...###",
-                    "####.........#######.....#....##",
-                    "#.G..G.G..#G#########...G.....##",
-                    "#.###.......#########........###",
-                    "#...G.......#########..E.E..####",
-                    "#..G........#########......#####",
-                    "#....G...E.E#########......#####",
-                    "#........E...#######....########",
-                    "#......#...G..#####...E....#####",
-                    "#.........G................#####",
-                    "#..........G....####....########",
-                    "#................###....########",
-                    "#..........G......######.#######",
-                    "#.............###.##.....#######",
-                    "##......#....####E...E.....#####",
-                    "##......##...###.E.#..##.#######",
-                    "##...####..#####....############",
-                    "###..###...#######..############",
-                    "###..###..######################",
-                    "################################",
-                }, 0, 0),
            };
             return input;
         }
@@ -451,12 +437,14 @@ namespace CsConsoleApplication
                     {
                         if (!unitsAliveOnTurnBegin.Any(ui => ui.i > i && ui.u.HitPoints > 0)) rounds++;
 
+                        PrintCombatState();
                         Console.WriteLine(String.Format("HitPoints {0} rounds {1}",
                             string.Join(", ", Units.Where(u => u.HitPoints > 0).Select(u => u.Kind.ToString() + u.HitPoints)), rounds));
                         return Units.Where(u => u.HitPoints > 0).Select(u => u.HitPoints).Sum() * rounds;
                     }
                 }
                 rounds++;
+                //PrintCombatState();
                 Console.WriteLine(String.Format("HitPoints {0} rounds {1}",
                     string.Join(", ", Units.Where(u => u.HitPoints > 0).Select(u => u.Kind.ToString() + u.HitPoints)), rounds));
                 //Console.ReadLine();
@@ -464,24 +452,49 @@ namespace CsConsoleApplication
         }
         private bool MoveIfCan(Unit unit)
         {
+            /*
             var shortestPathToEnemy = Units
                 .Where(u => u.HitPoints > 0 && u.Kind != unit.Kind)
                 .Select(e => new { Enemy = e, DaNS = GetDistanceAndNextStep(unit, e) })
                 .Where(ed => ed.DaNS.Distance != int.MaxValue)
                 .OrderBy(ed => ed.DaNS.Distance)
-                //.ThenBy(ed => ed.DaNS.NextStep.i)
-                //.ThenBy(ed => ed.DaNS.NextStep.j)
                 .ThenBy(ed => ed.DaNS.Target.i)
                 .ThenBy(ed => ed.DaNS.Target.j)
+                .ThenBy(ed => ed.DaNS.NextStep.i)
+                .ThenBy(ed => ed.DaNS.NextStep.j)
                 .FirstOrDefault();
 
-            if (shortestPathToEnemy != null)
+            var nextStep = GetNextStep(unit);
+
+            if (shortestPathToEnemy == null && nextStep.i != -1)
+                Console.ReadLine();
+
+            if (shortestPathToEnemy != null && nextStep.i == -1)
+                Console.ReadLine();
+
+            if (shortestPathToEnemy != null && nextStep.i != -1)
             {
+                if (shortestPathToEnemy.DaNS.NextStep.i != nextStep.i || shortestPathToEnemy.DaNS.NextStep.j != nextStep.j)
+                {
+                    PrintPath(nextStep.DistanceMap, nextStep.Path);
+                    Console.ReadLine();
+                }
+
                 unit.I = shortestPathToEnemy.DaNS.NextStep.i;
                 unit.J = shortestPathToEnemy.DaNS.NextStep.j;
                 return true;
             }
             else
+                return false;
+                */
+
+            var nextStep = GetNextStep(unit);
+            if (nextStep.i != -1)
+            {
+                unit.I = nextStep.i;
+                unit.J = nextStep.j;
+                return true;
+            }
                 return false;
         }
 
@@ -594,6 +607,124 @@ namespace CsConsoleApplication
                 }
             }
             return result;
+        }
+
+        private (int i, int j, List<HashSet<(int i, int j)>> Path, int[][] DistanceMap) GetNextStep(Unit unit)
+        {
+            var distanceMap = Map.Select(l => l.Select(c => (c == '.') ? -1 : int.MinValue).ToArray()).ToArray();
+            Units.Where(u => u.HitPoints > 0).ToList().ForEach(u => distanceMap[u.I][u.J] = int.MinValue);
+            distanceMap[unit.I][unit.J] = 0;
+
+            int biggest = 0;
+            while (true)
+            {
+                bool updated = false;
+                for (int i = 0; i < distanceMap.Count(); i++)
+                {
+                    for (int j = 0; j < distanceMap[i].Count(); j++)
+                    {
+                        if (distanceMap[i][j] == biggest)
+                        {
+                            foreach (var o in offsets)
+                            {
+                                if (distanceMap[i + o.i][j + o.j] == -1)
+                                {
+                                    distanceMap[i + o.i][j + o.j] = biggest + 1;
+                                    updated = true;
+                                }
+                            }
+                        }
+                    }
+                }
+                if (!updated) break;
+                biggest++;
+            }
+
+            var nearestSquare = Units
+            .Where(e => e.Kind != unit.Kind && e.HitPoints > 0)
+            .SelectMany(e => offsets.Select(o => new { i = e.I + o.i, j = e.J + o.j, distance = distanceMap[e.I + o.i][e.J + o.j] }))
+            .Where(sq => sq.distance > 0)
+            //.Aggregate((curMin, sq) => distanceMap[sq.i][sq.j] < distanceMap[curMin.i][curMin.j] ? sq : curMin)
+            .OrderBy(sq => sq.distance)
+            .ThenBy(sq => sq.i)
+            .ThenBy(sq => sq.j)
+            .FirstOrDefault();
+
+            if (nearestSquare == null)
+                return (-1, -1, null, null);
+            else
+            {
+                var previousStep = new HashSet<(int i, int j)>{ (nearestSquare.i, nearestSquare.j) };
+                var path = new List<HashSet<(int i, int j)>>{ previousStep };
+                var distance = nearestSquare.distance;
+                while (distance > 1)
+                {
+                    var tempStep = new HashSet<(int i, int j)>();
+                    foreach (var square in previousStep)
+                    {
+                        foreach (var o in offsets)
+                        {
+                            if (distanceMap[square.i + o.i][square.j + o.j] == distance - 1)
+                                tempStep.Add((square.i + o.i, square.j + o.j));
+                        }
+                    }
+                    path.Add(tempStep);
+                    previousStep = tempStep;
+                    distance--;
+                }
+
+                if (false)
+                    PrintPath(distanceMap, path);
+
+                var nextStep = previousStep.OrderBy(ps => ps.i).ThenBy(ps => ps.j).FirstOrDefault();
+
+                return (nextStep.i, nextStep.j, path, distanceMap);
+            }
+        }
+
+        private void PrintPath(int[][] distanceMap, List<HashSet<(int i, int j)>> path)
+        {
+            var memConsoleForegroundColor = Console.ForegroundColor;
+
+            //var printDistanceMap = distanceMap.Select(l => l.Select(c => c.ToString()).ToArray()).ToArray();
+            var hashUnits = Units.Select(u => new { IJ = (u.I, u.J), u.Kind }).ToDictionary(t => t.IJ, t => t.Kind);
+            var hashPath = path.SelectMany(p => p).ToHashSet();
+
+            Console.Write("  ");
+            for (int j = 0; j < distanceMap[0].Count(); j++)
+            {
+                Console.Write(j.ToString().PadLeft(2));
+            }
+            Console.WriteLine();
+
+            for (int i = 0; i < distanceMap.Count(); i++)
+            {
+                Console.Write(i.ToString().PadLeft(2));
+
+                for (int j = 0; j < distanceMap[i].Count(); j++)
+                {
+                    if (hashPath.Contains((i, j)))
+                        Console.ForegroundColor = ConsoleColor.Red;
+                    else
+                        Console.ForegroundColor = ConsoleColor.Cyan;
+
+                    if (distanceMap[i][j] == int.MinValue)
+                    {
+                        if (hashUnits.Keys.Contains((i, j)))
+                        {
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.Write(hashUnits[(i, j)].ToString().PadLeft(2));
+                        }
+                        else
+                            Console.Write(Map[i][j].ToString().PadLeft(2));
+                    }
+                    else
+                        Console.Write(distanceMap[i][j].ToString().PadLeft(2));
+                }
+                Console.WriteLine();
+            }
+            Console.ForegroundColor = memConsoleForegroundColor;
+            Console.ReadLine();
         }
 
         public void PrintCombatState(Unit mover = null, Unit stopper = null, Unit fighter = null, Unit defender = null)
