@@ -29,6 +29,7 @@ namespace CsConsoleApplication
 
             foreach (var input in inputs)
             {
+                /*
                 var outcome = 0;
                 int elfAttackPower = 4;
                 int losAttackPower = 0;
@@ -64,8 +65,23 @@ namespace CsConsoleApplication
                 }
                 Console.WriteLine(String.Format("The outcome is {0} (must be {1}) at elf attack power {2} (must be {3})", winOutcome, input.Outcome, winAttackPower, input.ElfAttackPower));
                 Console.ReadLine();
+                */
+
+                int elfAttackPower = 4;
+                var outcome = 0;
+                while (elfAttackPower < 20)
+                {
+                    var combat = new Combat(input.InitialState, elfAttackPower, false);
+                    outcome = combat.GetOutcome(elvesMustSurvive: true);
+
+                    combat.PrintCombatState();
+                    Console.WriteLine(String.Format("The outcome is {0} at elf attack power {1}", outcome, elfAttackPower));
+                    elfAttackPower++;
+                }
+                Console.ReadLine();
+
+                }
             }
-        }
 
         public static List<(Combat InitialState, int Outcome)> PrepareInput1(bool isTest)
         {
@@ -254,39 +270,74 @@ namespace CsConsoleApplication
         {
             var input = new List<(List<string> CombatMapLines, int Outcome)>
             {
+//                (new List<string>
+//                {
+//"################################",
+//"##############..###G.G#####..###",
+//"#######...#####........#.##.####",
+//"#######..G######.#...........###",
+//"#######..G..###.............####",
+//"########.GG.##.G.##.......E#####",
+//"##########........#........##..#",
+//"##############GG...#...........#",
+//"##############.....#..........##",
+//"#G.G...####....#G......G.#...###",
+//"#G..#..##........G.........E.###",
+//"#..###...G#............E.......#",
+//"#...G...G.....#####............#",
+//"#....#....#G.#######...........#",
+//"#.##....#.#.#########.#..#...E.#",
+//"####...##G..#########.....E...E#",
+//"#####...#...#########.#.#....E##",
+//"#####.......#########.###......#",
+//"######......#########...######.#",
+//"########.....#######..#..#######",
+//"########......#####...##.#######",
+//"########............E.##.#######",
+//"####.........##......##..#######",
+//"####....#..E...E...####.########",
+//"####.....#...........##.########",
+//"#####....##.#........###########",
+//"#####.....#####....#############",
+//"#####.#..######....#############",
+//"####..######....################",
+//"####..###.#.....################",
+//"####...##...####################",
+//"################################",
+//                }, 0),
                 (new List<string>
                 {
 "################################",
-"##############..###G.G#####..###",
-"#######...#####........#.##.####",
-"#######..G######.#...........###",
-"#######..G..###.............####",
-"########.GG.##.G.##.......E#####",
-"##########........#........##..#",
-"##############GG...#...........#",
-"##############.....#..........##",
-"#G.G...####....#G......G.#...###",
-"#G..#..##........G.........E.###",
-"#..###...G#............E.......#",
-"#...G...G.....#####............#",
-"#....#....#G.#######...........#",
-"#.##....#.#.#########.#..#...E.#",
-"####...##G..#########.....E...E#",
-"#####...#...#########.#.#....E##",
-"#####.......#########.###......#",
-"######......#########...######.#",
-"########.....#######..#..#######",
-"########......#####...##.#######",
-"########............E.##.#######",
-"####.........##......##..#######",
-"####....#..E...E...####.########",
-"####.....#...........##.########",
-"#####....##.#........###########",
-"#####.....#####....#############",
-"#####.#..######....#############",
-"####..######....################",
-"####..###.#.....################",
-"####...##...####################",
+"#######.G...####################",
+"#########...####################",
+"#########.G.####################",
+"#########.######################",
+"#########.######################",
+"#########G######################",
+"#########.#...##################",
+"#########.....#..###############",
+"########...G....###.....########",
+"#######............G....########",
+"#######G....G.....G....#########",
+"######..G.....#####..G...#######",
+"######...G...#######......######",
+"#####.......#########....G..E###",
+"#####.####..#########G...#....##",
+"####..####..#########..G....E..#",
+"#####.####G.#########...E...E.##",
+"#########.E.#########.........##",
+"#####........#######.E........##",
+"######........#####...##...#..##",
+"###...................####.##.##",
+"###.............#########..#####",
+"#G#.#.....E.....#########..#####",
+"#...#...#......##########.######",
+"#.G............#########.E#E####",
+"#..............##########...####",
+"##..#..........##########.E#####",
+"#..#G..G......###########.######",
+"#.G.#..........#################",
+"#...#..#.......#################",
 "################################",
                 }, 0),
 
@@ -419,6 +470,13 @@ namespace CsConsoleApplication
         public int GetOutcome(bool elvesMustSurvive = false)
         {
             int rounds = 0;
+            /*
+            PrintCombatState();
+            Console.WriteLine(String.Format("HitPoints {0} rounds {1}",
+                string.Join(", ", Units.Select(u => u.Kind.ToString() + u.HitPoints)), rounds));
+            Console.ReadLine();
+            */
+
             while (true)
             {
                 var unitsAliveOnTurnBegin = Units.Where(u => u.HitPoints > 0).OrderBy(u => u.I).ThenBy(u => u.J).Select((u, i) => (u, i)).ToList();
@@ -427,6 +485,12 @@ namespace CsConsoleApplication
                     if (unit.HitPoints <= 0) continue;
 
                     bool someoneHasAttacked = AttackBy(unit);
+
+                    if (Units.Any(u => u.Kind == 'E' && u.HitPoints < 7 && u.AttackPower > 15))
+                    {
+                        PrintCombatState();
+                        Console.ReadLine();
+                    }
 
                     if (someoneHasAttacked && elvesMustSurvive && Units.Any(u => u.Kind == 'E' && u.HitPoints < 1))
                         return 0;
@@ -615,7 +679,14 @@ namespace CsConsoleApplication
             Units.Where(u => u.HitPoints > 0).ToList().ForEach(u => distanceMap[u.I][u.J] = int.MinValue);
             distanceMap[unit.I][unit.J] = 0;
 
+            var adjacentCells = Units
+                .Where(u => u.HitPoints > 0 && u.Kind != unit.Kind)
+                .SelectMany(e => offsets.Select(o => (e.I + o.i, e.J + o.j)))
+                .Cast<(int i, int j)>()
+                .ToHashSet();
+
             int biggest = 0;
+            var reached = new HashSet<(int i, int j)>();
             while (true)
             {
                 bool updated = false;
@@ -627,59 +698,61 @@ namespace CsConsoleApplication
                         {
                             foreach (var o in offsets)
                             {
-                                if (distanceMap[i + o.i][j + o.j] == -1)
+                                if (distanceMap[i + o.i][j + o.j] == -1 || distanceMap[i + o.i][j + o.j] == biggest + 1)
                                 {
                                     distanceMap[i + o.i][j + o.j] = biggest + 1;
                                     updated = true;
+                                    if (adjacentCells.Contains((i + o.i, j + o.j)))
+                                        reached.Add((i + o.i, j + o.j));
                                 }
                             }
                         }
                     }
                 }
-                if (!updated) break;
                 biggest++;
+                if (!updated || reached.Count() > 0) break;
             }
 
-            var nearestSquare = Units
-            .Where(e => e.Kind != unit.Kind && e.HitPoints > 0)
-            .SelectMany(e => offsets.Select(o => new { i = e.I + o.i, j = e.J + o.j, distance = distanceMap[e.I + o.i][e.J + o.j] }))
-            .Where(sq => sq.distance > 0)
-            //.Aggregate((curMin, sq) => distanceMap[sq.i][sq.j] < distanceMap[curMin.i][curMin.j] ? sq : curMin)
-            .OrderBy(sq => sq.distance)
-            .ThenBy(sq => sq.i)
-            .ThenBy(sq => sq.j)
-            .FirstOrDefault();
+            //var nearestSquare = Units
+            //.Where(e => e.Kind != unit.Kind && e.HitPoints > 0)
+            //.SelectMany(e => offsets.Select(o => new { i = e.I + o.i, j = e.J + o.j, distance = distanceMap[e.I + o.i][e.J + o.j] }))
+            //.Where(sq => sq.distance > 0)
+            ////.Aggregate((curMin, sq) => distanceMap[sq.i][sq.j] < distanceMap[curMin.i][curMin.j] ? sq : curMin)
+            //.OrderBy(sq => sq.distance)
+            //.ThenBy(sq => sq.i)
+            //.ThenBy(sq => sq.j)
+            //.FirstOrDefault();
 
-            if (nearestSquare == null)
+            if (reached.Count() ==  0)
                 return (-1, -1, null, null);
-            else
+
+            var nearestSquare = reached.OrderBy(r => r.i).ThenBy(r => r.j).FirstOrDefault();
+
+            var previousStep = new HashSet<(int i, int j)>{ (nearestSquare.i, nearestSquare.j) };
+            var path = new List<HashSet<(int i, int j)>>{ previousStep };
+            var distance = biggest;
+            while (distance > 1)
             {
-                var previousStep = new HashSet<(int i, int j)>{ (nearestSquare.i, nearestSquare.j) };
-                var path = new List<HashSet<(int i, int j)>>{ previousStep };
-                var distance = nearestSquare.distance;
-                while (distance > 1)
+                var tempStep = new HashSet<(int i, int j)>();
+                foreach (var square in previousStep)
                 {
-                    var tempStep = new HashSet<(int i, int j)>();
-                    foreach (var square in previousStep)
+                    foreach (var o in offsets)
                     {
-                        foreach (var o in offsets)
-                        {
-                            if (distanceMap[square.i + o.i][square.j + o.j] == distance - 1)
-                                tempStep.Add((square.i + o.i, square.j + o.j));
-                        }
+                        if (distanceMap[square.i + o.i][square.j + o.j] == distance - 1)
+                            tempStep.Add((square.i + o.i, square.j + o.j));
                     }
-                    path.Add(tempStep);
-                    previousStep = tempStep;
-                    distance--;
                 }
-
-                if (false)
-                    PrintPath(distanceMap, path);
-
-                var nextStep = previousStep.OrderBy(ps => ps.i).ThenBy(ps => ps.j).FirstOrDefault();
-
-                return (nextStep.i, nextStep.j, path, distanceMap);
+                path.Add(tempStep);
+                previousStep = tempStep;
+                distance--;
             }
+
+            if (false)
+                PrintPath(distanceMap, path);
+
+            var nextStep = previousStep.OrderBy(ps => ps.i).ThenBy(ps => ps.j).FirstOrDefault();
+
+            return (nextStep.i, nextStep.j, path, distanceMap);
         }
 
         private void PrintPath(int[][] distanceMap, List<HashSet<(int i, int j)>> path)
