@@ -38,7 +38,7 @@ namespace CsConsoleApplication
 
         public static void Run1(bool isTest = true)
         {
-            var samples = PrepareInput(isTest);
+            var (samples, program) = PrepareInput(isTest);
 
             var behaviors = new List<(int, List<string>)>();
 
@@ -54,44 +54,99 @@ namespace CsConsoleApplication
                 behaviors.Add((i, behavior));
             }
 
+            var l = behaviors.OrderBy(b => b.Item2.Count()).ToList();
+
             var threeAndMoreOps = behaviors.Where(b => b.Item2.Count() > 2).Count();
 
             Console.WriteLine(String.Format("{0} samples behave like three or more opcodes", threeAndMoreOps));
             Console.ReadLine();
         }
-
-        public static List<Sample> PrepareInput(bool isTest)
+        public static void Run2(bool isTest = true)
         {
-            var inputs = isTest ? ReadTestInput() : ReadInput();
+            var (samples, program) = PrepareInput(isTest);
+
+            var behaviors = new List<(int, int, HashSet<string>)>();
+
+            foreach (var (sample, i) in samples.Select((s, i) => (s, i)))
+            {
+                var behavior = new HashSet<string>();
+                foreach (var op in Operations)
+                {
+                    var after = op.Value(sample.Before, sample.Operation);
+                    if (after[0] == sample.After[0] && after[1] == sample.After[1] && after[2] == sample.After[2] && after[3] == sample.After[3])
+                        behavior.Add(op.Key);
+                }
+                behaviors.Add((i, sample.Operation[0], behavior));
+            }
+
+            var translateTable = new Dictionary<int, string>();
+            while (behaviors.Count() > 0)
+            {
+                var singles = behaviors
+                    .Where(b => b.Item3.Count() == 1)
+                    .Select(b => (b.Item2, b.Item3.First()))
+                    .Distinct()
+                    .ToDictionary(b => b.Item1, b => b.Item2);
+
+                translateTable = translateTable.Concat(singles).ToDictionary(e => e.Key, e => e.Value); 
+
+                behaviors.RemoveAll(b => b.Item3.Count() == 1);
+                behaviors.ForEach(b => b.Item3.RemoveWhere(op => singles.Values.Contains(op)));
+            }
+
+            var registers = new int[4];
+
+            foreach (var operation in program)
+            {
+                registers = Operations[translateTable[operation[0]]](registers, operation);
+            }
+
+            Console.WriteLine(String.Format("Value in register 0 is {0}", registers[0]));
+            Console.ReadLine();
+        }
+
+        public static (List<Sample> Samples, List<int[]> Program) PrepareInput(bool isTest)
+        {
+            var (samplesStrings, programStrings) = isTest ? ReadTestInput() : ReadInput();
 
             var samples = new List<Sample>();
-
             var sample = new Sample();
-            foreach (var input in inputs)
+            foreach (var sampleString in samplesStrings)
             {
-                if (input.StartsWith("Before"))
+                if (sampleString.StartsWith("Before"))
                 {
-                    sample = new Sample { Before = input.Substring(9, 10).Split(new string[] { ", " }, StringSplitOptions.None).Select(c => int.Parse(c)).ToArray() };
+                    sample = new Sample { Before = sampleString.Substring(9, 10).Split(new string[] { ", " }, StringSplitOptions.None).Select(c => int.Parse(c)).ToArray() };
                     continue;
                 }
 
-                if (input.StartsWith("After"))
+                if (sampleString.StartsWith("After"))
                 {
-                    sample.After = input.Substring(9, 10).Split(new string[] { ", " }, StringSplitOptions.None).Select(c => int.Parse(c)).ToArray();
+                    sample.After = sampleString.Substring(9, 10).Split(new string[] { ", " }, StringSplitOptions.None).Select(c => int.Parse(c)).ToArray();
                     samples.Add(sample);
                     continue;
                 }
 
-                if (string.IsNullOrWhiteSpace(input)) continue;
+                if (string.IsNullOrWhiteSpace(sampleString)) continue;
 
-                sample.Operation = input.Split().Select(c => int.Parse(c)).ToArray();
+                sample.Operation = sampleString.Split().Select(c => int.Parse(c)).ToArray();
             }
 
-            return samples;
+            if (programStrings == null)
+                return (samples, null);
+
+            var program = new List<int[]>();
+            foreach (var programString in programStrings)
+            {
+                if (string.IsNullOrWhiteSpace(programString)) continue;
+                program.Add(programString.Split().Select(c => int.Parse(c)).ToArray());
+            }
+
+            return (samples, program);
         }
-        public static List<string> ReadInput()
+        public static (List<string> SamplesStrings, List<string> ProgramStrings) ReadInput()
         {
-            var input = new List<string>();
+            var samplesStrings = new List<string>();
+            var programStrings = new List<string>();
 
             const Int32 BufferSize = 128;
             using (var fileStream = System.IO.File.OpenRead(@"..\..\Input\AdventOfCode16.txt"))
@@ -99,22 +154,26 @@ namespace CsConsoleApplication
             {
                 String line;
                 bool emptyLine = false;
+                bool programCode = false;
                 while ((line = streamReader.ReadLine()) != null)
                 {
                     if (string.IsNullOrWhiteSpace(line))
                     {
-                        if (emptyLine) break;
+                        if (emptyLine) programCode = true;
                         emptyLine = true;
                     }
                     else
                         emptyLine = false;
 
-                    input.Add(line);
+                    if (programCode)
+                        programStrings.Add(line);
+                    else
+                        samplesStrings.Add(line);
                 }
             }
-            return input;
+            return (samplesStrings, programStrings);
         }
-        public static List<string> ReadTestInput()
+        public static (List<string> SamplesStrings, List<string> ProgramStrings) ReadTestInput()
         {
             var input = new List<string>
             {
@@ -122,7 +181,7 @@ namespace CsConsoleApplication
                 @"9 2 1 2",
                 @"After:  [3, 2, 2, 1]",
             };
-            return input;
+            return (input, null);
         }
 
     }
