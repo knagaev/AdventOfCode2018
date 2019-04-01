@@ -69,6 +69,7 @@
     <Compile Include="AdventOfCode14.cs" />
     <Compile Include="AdventOfCode15.cs" />
     <Compile Include="AdventOfCode16.cs" />
+    <Compile Include="AdventOfCode17.cs" />
     <Compile Include="AdventOfCode2.cs" />
     <Compile Include="AdventOfCode3.cs" />
     <Compile Include="AdventOfCode4.cs" />
