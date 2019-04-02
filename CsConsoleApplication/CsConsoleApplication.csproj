@@ -88,6 +88,7 @@
     <Content Include="Input\AdventOfCode12.txt" />
     <Content Include="Input\AdventOfCode13.txt" />
     <Content Include="Input\AdventOfCode16.txt" />
+    <Content Include="Input\AdventOfCode17.txt" />
     <Content Include="Input\AdventOfCode2.txt" />
     <Content Include="Input\AdventOfCode3.txt" />
     <Content Include="Input\AdventOfCode4.txt" />
