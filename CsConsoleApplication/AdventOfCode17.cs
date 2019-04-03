@@ -12,7 +12,7 @@ namespace CsConsoleApplication
 
         public static void Run1(bool isTest = true)
         {
-            var (undergroundMap, minX, minY) = PrepareInput1(isTest);
+            var (undergroundMap, minX, minY) = PrepareInput(isTest);
             //var inputs = isTest? PrepareInput1(ReadTestInput1) : PrepareInput1(ReadInput1);
 
             PrintUndergroundMap(undergroundMap, minX, minY);
@@ -154,9 +154,9 @@ namespace CsConsoleApplication
                 return false;
         }
 
-        public static (char[][] UndergroundMap, int MinX, int MinY) PrepareInput1(bool isTest)
+        public static (char[][] UndergroundMap, int MinX, int MinY) PrepareInput(bool isTest)
         {
-            var veinsLines = isTest ? ReadTestInput1() : ReadInput1();
+            var veinsLines = isTest ? ReadTestInput() : ReadInput();
             var veins = new List<(int fromX, int toX, int fromY, int toY)>();
 
             var r = new System.Text.RegularExpressions.Regex(@"(\w)=(\d+), (\w)=(\d+)\.\.(\d+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
@@ -206,7 +206,7 @@ namespace CsConsoleApplication
 
             return (undergroundMap, minX, minY);
         }
-        public static List<string> ReadTestInput1()
+        public static List<string> ReadTestInput()
         {
             var veinsLines = new List<string>
             {
@@ -221,7 +221,7 @@ namespace CsConsoleApplication
             };
             return veinsLines;
         }
-        public static List<string> ReadInput1()
+        public static List<string> ReadInput()
         {
             var veinsLines = new List<string>();
 

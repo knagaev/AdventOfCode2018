@@ -11,7 +11,7 @@ namespace CsConsoleApplication
         static void Main(string[] args)
 
         {
-            AdventOfCode17.Run1(false);
+            AdventOfCode18.Run2(false);
         }
     }
 }

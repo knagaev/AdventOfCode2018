@@ -70,6 +70,7 @@
     <Compile Include="AdventOfCode15.cs" />
     <Compile Include="AdventOfCode16.cs" />
     <Compile Include="AdventOfCode17.cs" />
+    <Compile Include="AdventOfCode18.cs" />
     <Compile Include="AdventOfCode2.cs" />
     <Compile Include="AdventOfCode3.cs" />
     <Compile Include="AdventOfCode4.cs" />
@@ -89,6 +90,7 @@
     <Content Include="Input\AdventOfCode13.txt" />
     <Content Include="Input\AdventOfCode16.txt" />
     <Content Include="Input\AdventOfCode17.txt" />
+    <Content Include="Input\AdventOfCode18.txt" />
     <Content Include="Input\AdventOfCode2.txt" />
     <Content Include="Input\AdventOfCode3.txt" />
     <Content Include="Input\AdventOfCode4.txt" />
