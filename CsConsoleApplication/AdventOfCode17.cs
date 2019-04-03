@@ -12,36 +12,47 @@ namespace CsConsoleApplication
 
         public static void Run1(bool isTest = true)
         {
-            var (undergroundMap, minX) = PrepareInput1(isTest);
+            var (undergroundMap, minX, minY) = PrepareInput1(isTest);
             //var inputs = isTest? PrepareInput1(ReadTestInput1) : PrepareInput1(ReadInput1);
 
-            PrintUndergroundMap(undergroundMap, minX);
+            PrintUndergroundMap(undergroundMap, minX, minY);
 
-            var filledTiles = FillWater(undergroundMap, minX, isTest);
+            var (filledTiles, remainedTiles) = FillWater(undergroundMap, minX, minY, isTest);
 
-            Console.WriteLine(String.Format("Water can reach {0} tiles", filledTiles));
+            Console.WriteLine(String.Format("Water can reach {0} tiles, stay in {1} tiles", filledTiles, remainedTiles));
             Console.ReadLine();
         }
 
-        public static int FillWater(char[][] undergroundMap, int minX, bool isTest)
+        public static (int FilledWater, int RemainedWater) FillWater(char[][] undergroundMap, int minX, int minY, bool isTest)
         {
             var fillWaterMap = undergroundMap.Select(l => l.ToArray()).ToArray();
 
             var springPosition = fillWaterMap[0].Select((c, j) => (c, j)).Where(cj => cj.c == '+').Select(cj => cj.j).Single();
             fillWaterMap[1][springPosition] = '~';
 
-            bool updated = false;
+            /*
+            for (int i = fillWaterMap.Count() - 1; i > 0; i--)
+            {
+                for (int j = 1; j < fillWaterMap[i].Count() - 1; j++)
+                {
+                    if (fillWaterMap[i][j] )
+                }
+            }*/
 
+            var fillWaterMapDeep = fillWaterMap.Count();
+            var fillWaterMapWidth = fillWaterMap[0].Count();
+
+            bool updated = false;
             while (true)
             {
                 if (isTest)
-                    PrintUndergroundMap(fillWaterMap, minX);
+                    PrintUndergroundMap(fillWaterMap, minX, minY);
                 //Console.ReadLine();
 
                 updated = false;
-                for (int i = fillWaterMap.Count() - 2; i > 0; i--)
+                for (int i = fillWaterMapDeep - 2; i > 0; i--)
                 {
-                    for (int j = 1; j < fillWaterMap[i].Count() - 1; j++)
+                    for (int j = 0; j < fillWaterMapWidth; j++)
                     {
                         if (fillWaterMap[i][j] == '~')
                         {
@@ -55,14 +66,14 @@ namespace CsConsoleApplication
                             {
                                 if (fillWaterMap[i + 1][j] == '#' ||    // over clay
                                     (fillWaterMap[i + 1][j] == '~' &&   // or over clay-bounded water  
-                                        IsBounded(fillWaterMap, i + 1, j)))
+                                        (fillWaterMap[i + 1][j] == 'o' || IsFilled(fillWaterMap, i + 1, j))))
                                 {
-                                    if (fillWaterMap[i][j + 1] == '.')
+                                    if (j < fillWaterMapWidth - 1 && fillWaterMap[i][j + 1] == '.')
                                     {
                                         fillWaterMap[i][j + 1] = '~';
                                         updated = true;
                                     }
-                                    if (fillWaterMap[i][j - 1] == '.')
+                                    if (j > 0 && fillWaterMap[i][j - 1] == '.')
                                     {
                                         fillWaterMap[i][j - 1] = '~';
                                         updated = true;
@@ -76,13 +87,33 @@ namespace CsConsoleApplication
                 if (!updated) break;
             }
 
-            var filledWater = fillWaterMap.SelectMany(l => l.Where(c => c == '~')).Count();
-            return filledWater;
+            for (int i = fillWaterMapDeep - 1; i > 0; i--)
+            {
+                for (int j = 0; j < fillWaterMapWidth; j++)
+                {
+                    if (fillWaterMap[i][j] == '~')
+                    {
+                        if (!IsFilled(fillWaterMap, i, j))
+                            /*((j > 0 && (fillWaterMap[i][j - 1] == '.' || fillWaterMap[i][j - 1] == '|')) ||
+                            (j < fillWaterMapWidth - 1 && (fillWaterMap[i][j + 1] == '.' || fillWaterMap[i][j - 1] == '|')))*/
+                            fillWaterMap[i][j] = '|';
+                    }
+                }
+            }
+
+
+            Console.WriteLine("Finish");
+            PrintUndergroundMap(fillWaterMap, minX, minY);
+
+            var filledWater = fillWaterMap.Select((l, i) => (l, i)).Where(li => li.i >= minY).SelectMany(li => li.l.Where(c => c == '~' || c == '|')).Count();
+            
+            var remainedWater = fillWaterMap.Select((l, i) => (l, i)).Where(li => li.i >= minY).SelectMany(li => li.l.Where(c => c == '~')).Count();
+            return (filledWater, remainedWater);
         }
 
-        private static bool IsBounded(char[][] fillWaterMap, int i, int j)
+        private static bool IsFilled(char[][] fillWaterMap, int i, int j)
         {
-            bool boundedLeft = false;
+            int leftBound = -1;
             for (int k = j - 1; k > -1; k--)
             {
                 if (fillWaterMap[i][k] == '.')
@@ -90,14 +121,14 @@ namespace CsConsoleApplication
 
                 if (fillWaterMap[i][k] == '#')
                 {
-                    boundedLeft = true;
+                    leftBound = k;
                     break;
                 }
             }
 
-            if (!boundedLeft) return false;
+            if (leftBound < 0) return false;
 
-            bool boundedRight = false;
+            int rightBound = -1;
             for (int k = j + 1; k < fillWaterMap[i].Count(); k++)
             {
                 if (fillWaterMap[i][k] == '.')
@@ -105,14 +136,25 @@ namespace CsConsoleApplication
 
                 if (fillWaterMap[i][k] == '#')
                 {
-                    boundedRight = true;
+                    rightBound = k;
                     break;
                 }
             }
-            return boundedRight;
+
+            if (leftBound > -1 && rightBound > -1)
+            {
+                for (int k = leftBound + 1; k < rightBound; k++)
+                {
+                    if (fillWaterMap[i][k] == '.')
+                        fillWaterMap[i][k] = 'o';
+                }
+                return true;
+            }
+            else
+                return false;
         }
 
-        public static (char[][] UndergroundMap, int MinX) PrepareInput1(bool isTest)
+        public static (char[][] UndergroundMap, int MinX, int MinY) PrepareInput1(bool isTest)
         {
             var veinsLines = isTest ? ReadTestInput1() : ReadInput1();
             var veins = new List<(int fromX, int toX, int fromY, int toY)>();
@@ -138,8 +180,9 @@ namespace CsConsoleApplication
                 }
             }
 
-            var minX = veins.Select(v => v.toX).Min();
+            var minX = veins.Select(v => v.fromX).Min();
             var maxX = veins.Select(v => v.toX).Max();
+            var minY = veins.Select(v => v.fromY).Min();
             var maxY = veins.Select(v => v.toY).Max();
 
             var undergroundMap = new char[maxY + 1][];
@@ -161,7 +204,7 @@ namespace CsConsoleApplication
 
             undergroundMap[0][500 - minX + 1] = '+';
 
-            return (undergroundMap, minX);
+            return (undergroundMap, minX, minY);
         }
         public static List<string> ReadTestInput1()
         {
@@ -194,7 +237,7 @@ namespace CsConsoleApplication
             }
             return veinsLines;
         }
-        public static void PrintUndergroundMap(char[][] undergroundMap, int minX)
+        public static void PrintUndergroundMap(char[][] undergroundMap, int minX, int minY)
         {
             var memConsoleForegroundColor = Console.ForegroundColor;
 
@@ -219,6 +262,34 @@ namespace CsConsoleApplication
             Console.ForegroundColor = memConsoleForegroundColor;
 
             Console.WriteLine();
+            return;
+        }
+        public static void SaveUndergroundMap(char[][] undergroundMap, int minX, int minY)
+        {
+            const Int32 BufferSize = 128;
+            using (var fileStream = System.IO.File.OpenWrite(@"..\..\Input\AdventOfCode17_result.txt"))
+            using (var streamWriter = new System.IO.StreamWriter(fileStream, Encoding.UTF8, BufferSize))
+            {
+                foreach (var n in new List<int> { 100, 10, 1 })
+                {
+                    streamWriter.Write("".PadRight((int)Math.Log10(undergroundMap.Length) + 1));
+                    foreach (var i in Enumerable.Range(minX - BorderWidth, undergroundMap.Select(l => l.Length).Max()))
+                        streamWriter.Write((i / n == 0) ? " " : (i / n - i / n / 10 * 10).ToString());
+                    streamWriter.WriteLine();
+                }
+
+                foreach (var (l, i) in undergroundMap.Select((l, i) => (l, i)))
+                {
+                    streamWriter.Write(i.ToString().PadLeft((int)Math.Log10(undergroundMap.Length) + 1, ' '));
+                    foreach (var (c, j) in l.Select((c, j) => (c, j)))
+                    {
+                        streamWriter.Write(c);
+                    }
+                    streamWriter.WriteLine();
+                }
+
+                streamWriter.WriteLine();
+            }
             return;
         }
 
