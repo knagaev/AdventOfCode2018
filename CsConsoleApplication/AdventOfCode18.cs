@@ -28,7 +28,9 @@ namespace CsConsoleApplication
 
         private static void Imitate(char[][] lumberMap, int minutes, bool verbal, bool isTest)
         {
-            var resourceValues = new Dictionary<int, int>();
+            var resourceValuesOnMinutes = new Dictionary<int, HashSet<int>>();
+            var minutesWithResourceValues = new Dictionary<int, int>();
+            //var resourceValues = new List<int>();
 
             var lumberMapHeight = lumberMap.Count();
             var lumberMapWidth = lumberMap[0].Count();
@@ -124,20 +126,45 @@ namespace CsConsoleApplication
                     }
                     int resourceValue = finalNumberOfTrees * finalNumberOfLumberyards;
                     Console.WriteLine(String.Format("After {0} minutes the total resource value of the lumber collection area is {1}", m + 1, resourceValue));
-                    if (resourceValues.ContainsKey(resourceValue))
-                    {
-                        int previousMinute = resourceValues[resourceValue];
-                        Console.WriteLine(String.Format("Previous minute with total resource value of the lumber collection area {0} is {1}", resourceValue, previousMinute + 1));
-                        var inverseResourceValues = resourceValues.ToDictionary(rv => rv.Value, rv => rv.Key);
 
-                        int period = m - previousMinute;
-                        Console.WriteLine(String.Format("Period is {0}", period));
-                        int remain = (minutes - previousMinute) % period;
-                        Console.WriteLine(String.Format("After {0} minutes the final resource value of the lumber collection area is {1}", minutes, inverseResourceValues[remain + previousMinute]));
-                        return;
+
+                    if (resourceValuesOnMinutes.ContainsKey(resourceValue))
+                    {
+                        foreach (var resourceValuesOnMinute in resourceValuesOnMinutes[resourceValue])
+                        {
+                            bool repeated = true;
+                            for (int i = m - 1; i > resourceValuesOnMinute; i--)
+                            {
+                                if (i - (m - resourceValuesOnMinute) < 0) break;
+
+                                if (minutesWithResourceValues[i] != minutesWithResourceValues[i - (m - resourceValuesOnMinute)])
+                                {
+                                    repeated = false;
+                                    break;
+                                }
+                            }
+
+                            if (repeated)
+                            {
+                                int previousMinute = resourceValuesOnMinute;
+                                int period = m - previousMinute;
+                                Console.WriteLine(String.Format("Previous minute with total resource value of the lumber collection area {0} is {1}", resourceValue, previousMinute + 1));
+                                Console.WriteLine(String.Format("Period is {0}", period));
+                                int remain = (minutes - previousMinute) % period;
+                                Console.WriteLine(String.Format("After {0} minutes the final resource value of the lumber collection area is {1}", minutes, minutesWithResourceValues[remain + previousMinute]));
+                                return;
+                            }
+
+                        }
                     }
-                    resourceValues[resourceValue] = m;
-                    //if(m % 10 == 0)
+                    if (!resourceValuesOnMinutes.ContainsKey(resourceValue))
+                        resourceValuesOnMinutes[resourceValue] = new HashSet<int>();
+                    resourceValuesOnMinutes[resourceValue].Add(m);
+                    minutesWithResourceValues[m] = resourceValue;
+
+                    //resourceValues.Add(resourceValue);
+
+                    //if (m % 1000 == 0)
                     //    Console.ReadLine();
                 }
             }
