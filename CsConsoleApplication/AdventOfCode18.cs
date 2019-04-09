@@ -27,7 +27,7 @@ namespace CsConsoleApplication
 
         private static void Imitate(char[][] lumberMap, int minutes, bool verbal, bool isTest)
         {
-            var resourceValuesOnMinutes = new Dictionary<int, HashSet<int>>();
+            var resourceValuesOnMinutes = new Dictionary<int, int>();
             var minutesWithResourceValues = new Dictionary<int, int>();
             //var resourceValues = new List<int>();
 
@@ -129,43 +129,37 @@ namespace CsConsoleApplication
 
                     if (resourceValuesOnMinutes.ContainsKey(resourceValue))
                     {
-                        foreach (var resourceValuesOnMinute in resourceValuesOnMinutes[resourceValue])
+                        var resourceValuesOnMinute = resourceValuesOnMinutes[resourceValue];
+                        if (m - resourceValuesOnMinute < 3) continue; // guard against too short sequences
+
+                        bool repeated = true;
+                        for (int i = m - 1; i > resourceValuesOnMinute; i--)
                         {
-                            if (m - resourceValuesOnMinute < 3) continue; // guard against too short sequences
+                            if (i - (m - resourceValuesOnMinute) < 0) break;
 
-                            bool repeated = true;
-                            for (int i = m - 1; i > resourceValuesOnMinute; i--)
+                            if (minutesWithResourceValues[i] != minutesWithResourceValues[i - (m - resourceValuesOnMinute)])
                             {
-                                if (i - (m - resourceValuesOnMinute) < 0) break;
-
-                                if (minutesWithResourceValues[i] != minutesWithResourceValues[i - (m - resourceValuesOnMinute)])
-                                {
-                                    repeated = false;
-                                    break;
-                                }
+                                repeated = false;
+                                break;
                             }
-
-                            if (repeated)
-                            {
-                                int previousMinute = resourceValuesOnMinute;
-                                int period = m - previousMinute;
-                                Console.WriteLine(string.Format("Previous minute with total resource value of the lumber collection area {0} is {1}", resourceValue, previousMinute + 1));
-                                Console.WriteLine(String.Format("Period is {0}", period));
-                                int remain = (minutes - 1 - previousMinute) % period;
-                                Console.WriteLine(String.Format("After {0} minutes the final resource value of the lumber collection area is {1}", minutes, minutesWithResourceValues[remain + previousMinute]));
-                                return;
-                            }
-
                         }
+
+                        if (repeated)
+                        {
+                            int previousMinute = resourceValuesOnMinute;
+                            int period = m - previousMinute;
+                            Console.WriteLine(string.Format("Previous minute with total resource value of the lumber collection area {0} is {1}", resourceValue, previousMinute + 1));
+                            Console.WriteLine(String.Format("Period is {0}", period));
+                            int remain = (minutes - 1 - previousMinute) % period;
+                            Console.WriteLine(String.Format("After {0} minutes the final resource value of the lumber collection area is {1}", minutes, minutesWithResourceValues[remain + previousMinute]));
+                            return;
+                        }
+
                     }
-                    if (!resourceValuesOnMinutes.ContainsKey(resourceValue))
-                        resourceValuesOnMinutes[resourceValue] = new HashSet<int>();
-                    resourceValuesOnMinutes[resourceValue].Add(m);
+                    resourceValuesOnMinutes[resourceValue] = m;
                     minutesWithResourceValues[m] = resourceValue;
 
-                    //resourceValues.Add(resourceValue);
-
-                    if (m % 1000 == 0)
+                    if (m % 999 == 0)
                         Console.ReadLine();
                 }
             }
