@@ -22,7 +22,6 @@ namespace CsConsoleApplication
             var lumberMap = PrepareInput(isTest);
 
             Imitate(lumberMap, minutes, true, isTest);
-
             Console.ReadLine();
         }
 
@@ -132,6 +131,8 @@ namespace CsConsoleApplication
                     {
                         foreach (var resourceValuesOnMinute in resourceValuesOnMinutes[resourceValue])
                         {
+                            if (m - resourceValuesOnMinute < 3) continue; // guard against too short sequences
+
                             bool repeated = true;
                             for (int i = m - 1; i > resourceValuesOnMinute; i--)
                             {
@@ -148,9 +149,9 @@ namespace CsConsoleApplication
                             {
                                 int previousMinute = resourceValuesOnMinute;
                                 int period = m - previousMinute;
-                                Console.WriteLine(String.Format("Previous minute with total resource value of the lumber collection area {0} is {1}", resourceValue, previousMinute + 1));
+                                Console.WriteLine(string.Format("Previous minute with total resource value of the lumber collection area {0} is {1}", resourceValue, previousMinute + 1));
                                 Console.WriteLine(String.Format("Period is {0}", period));
-                                int remain = (minutes - previousMinute) % period;
+                                int remain = (minutes - 1 - previousMinute) % period;
                                 Console.WriteLine(String.Format("After {0} minutes the final resource value of the lumber collection area is {1}", minutes, minutesWithResourceValues[remain + previousMinute]));
                                 return;
                             }
@@ -164,8 +165,8 @@ namespace CsConsoleApplication
 
                     //resourceValues.Add(resourceValue);
 
-                    //if (m % 1000 == 0)
-                    //    Console.ReadLine();
+                    if (m % 1000 == 0)
+                        Console.ReadLine();
                 }
             }
 
